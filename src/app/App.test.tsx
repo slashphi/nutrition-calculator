@@ -23,7 +23,7 @@ describe("App", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getAllByText("1,600").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("1.600").length).toBeGreaterThan(0);
       expect(screen.getAllByText("480").length).toBeGreaterThan(0);
       expect(screen.getAllByText("120").length).toBeGreaterThan(0);
       expect(screen.getAllByText("1.5").length).toBeGreaterThan(0);
