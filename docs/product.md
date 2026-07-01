@@ -42,6 +42,6 @@ An ultrarunner preparing a nutrition plan for an ultra-trail race.
 
 ## Success criterion
 
-For a 10 km course with 1,000 m elevation gain and an 80 kg athlete, total energy need is 1,600 kcal:
+For a 10 km course with 1,000 m elevation gain and an 80 kg athlete, total energy need is 1600 kcal:
 
-`80 × (10 + 1,000 ÷ 100) = 1,600`
+`80 × (10 + 1000 ÷ 100) = 1600`

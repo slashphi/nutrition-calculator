@@ -266,7 +266,7 @@ The interface shall be usable on mobile and desktop viewports.
 Given an athlete weighing 80 kg  
 And a 10 km course with 1,000 m elevation gain  
 When results are calculated  
-Then total energy need is 1,600 kcal.
+Then total energy need is 1.600 kcal.
 
 ### AC-2 Default nutrition chain
 
