@@ -24,6 +24,9 @@ test("maintains a custom nutrition option", async ({ page }) => {
   await dialog.getByRole("button", { name: "Save", exact: true }).click();
 
   await expect(page.getByText("Rice cake")).toBeVisible();
+  await expect(page.getByRole("status")).toContainText(
+    "Nutrition option added.",
+  );
   await page.reload();
   await page.getByRole("button", { name: "Nutrition options" }).click();
   await expect(page.getByText("Rice cake")).toBeVisible();

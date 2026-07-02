@@ -434,16 +434,21 @@ export function NutritionCataloguePage({ language }: { language: Language }) {
           options={state.options}
           onCancel={() => setDraft(null)}
           onSave={(option) => {
-            setState((current) => ({
-              ...current,
+            const nextState: CatalogueState = {
+              ...state,
               options: draft.editingId
-                ? current.options.map((item) =>
+                ? state.options.map((item) =>
                     item.id === draft.editingId ? option : item,
                   )
-                : [...current.options, option],
-            }));
-            setNotice(draft.editingId ? m.successEdit : m.successAdd);
+                : [...state.options, option],
+            };
+            setState(nextState);
             setDraft(null);
+            void saveCatalogue(nextState, view)
+              .then(() =>
+                setNotice(draft.editingId ? m.successEdit : m.successAdd),
+              )
+              .catch(() => setNotice(m.storage));
           }}
         />
       )}
