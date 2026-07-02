@@ -1,5 +1,5 @@
 const DATABASE_NAME = "ultra-race-nutrition";
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
 export const PLAN_KEY = "current";
 
 let databasePromise: Promise<IDBDatabase> | null = null;
@@ -15,6 +15,9 @@ export function openDatabase(): Promise<IDBDatabase> {
       }
       if (!database.objectStoreNames.contains("courses")) {
         database.createObjectStore("courses");
+      }
+      if (!database.objectStoreNames.contains("catalogue")) {
+        database.createObjectStore("catalogue");
       }
     };
     request.onsuccess = () => resolve(request.result);

@@ -1,6 +1,11 @@
 # Nutrition Master Data — Acceptance Criteria Verification
 
-Status: Planned
+Status: Implemented
+
+Automated domain, persistence, and component coverage passes locally. The
+Playwright catalogue workflow is implemented in
+`e2e/nutrition-catalogue.spec.ts`; local execution requires the missing host
+Chromium libraries and WebKit binary.
 
 | Criterion                               | Planned automated coverage                                                        |
 | --------------------------------------- | --------------------------------------------------------------------------------- |

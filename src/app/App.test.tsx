@@ -43,4 +43,35 @@ describe("App", () => {
     });
     expect(screen.getByLabelText("Rennname")).toHaveValue("Alpine 100");
   });
+
+  it("opens the nutrition catalogue and adds a custom option", async () => {
+    render(<App />);
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Nutrition options" }),
+    );
+    expect(
+      await screen.findByRole("heading", { name: "Nutrition options" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Testprodukt")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Add option/ }));
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: "Rice cake" },
+    });
+    fireEvent.change(screen.getByLabelText("Carbohydrates (g)"), {
+      target: { value: "30" },
+    });
+    fireEvent.change(screen.getByLabelText("Sodium (mg)"), {
+      target: { value: "150" },
+    });
+    fireEvent.change(screen.getByLabelText("Water (L)"), {
+      target: { value: "0.0" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByText("Rice cake")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Nutrition option added.",
+    );
+  });
 });

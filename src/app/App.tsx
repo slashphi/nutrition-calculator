@@ -33,6 +33,7 @@ import { GpxError, type GpxErrorCode } from "../gpx/gpxErrors";
 import { parseGpx } from "../gpx/parseGpx";
 import { detectLanguage, formatNumber, messages } from "../i18n/locale";
 import { loadPlan, savePlan } from "../persistence/planRepository";
+import { NutritionCataloguePage } from "../catalogue/NutritionCataloguePage";
 
 type Notice = "restored" | "restoreFailed" | "storageFailed" | null;
 
@@ -130,6 +131,7 @@ export function App() {
   const [stationError, setStationError] = useState<string | null>(null);
   const [newTotalMode, setNewTotalMode] = useState(false);
   const [newTotalValue, setNewTotalValue] = useState("");
+  const [page, setPage] = useState<"calculator" | "catalogue">("calculator");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const m = messages(plan.language);
 
@@ -454,457 +456,505 @@ export function App() {
             </select>
           </label>
         </div>
+        <nav
+          className="top-navigation"
+          aria-label={
+            plan.language === "de" ? "Hauptnavigation" : "Main navigation"
+          }
+        >
+          <button
+            type="button"
+            aria-current={page === "calculator" ? "page" : undefined}
+            onClick={() => setPage("calculator")}
+          >
+            {plan.language === "de" ? "Rechner" : "Calculator"}
+          </button>
+          <button
+            type="button"
+            aria-current={page === "catalogue" ? "page" : undefined}
+            onClick={() => setPage("catalogue")}
+          >
+            {plan.language === "de"
+              ? "Verpflegungsoptionen"
+              : "Nutrition options"}
+          </button>
+        </nav>
       </header>
 
       <main>
-        {notice && (
-          <div
-            className={`notice ${notice === "storageFailed" ? "notice-error" : ""}`}
-            role="status"
-          >
-            {m[notice]}
-            <button
-              type="button"
-              className="icon-button"
-              onClick={() => setNotice(null)}
-              aria-label="Close"
-            >
-              ×
-            </button>
-          </div>
-        )}
-
-        <section className="panel">
-          <div className="section-heading">
-            <span className="step">01</span>
-            <h2>{m.raceDetails}</h2>
-          </div>
-          <div className="form-grid">
-            <Field
-              label={m.raceName}
-              error={
-                issueByField.get("raceName") ? m.validation.required : undefined
-              }
-            >
-              <input
-                value={plan.raceName}
-                onChange={(event) => patch({ raceName: event.target.value })}
-                required
-              />
-            </Field>
-            <Field
-              label={`${m.weight} (${m.weightUnit})`}
-              error={
-                issueByField.get("weightKg")
-                  ? m.validation.weightRange
-                  : undefined
-              }
-            >
-              <input
-                type="number"
-                inputMode="numeric"
-                min="40"
-                max="150"
-                step="1"
-                value={plan.weightKg ?? ""}
-                onChange={(event) =>
-                  patch({ weightKg: numberOrNull(event.target.value) })
-                }
-              />
-            </Field>
-            <Field
-              label={`${m.intake} (%)`}
-              help={m.intakeHelp}
-              error={
-                issueByField.get("intakePercent")
-                  ? m.validation.percentRange
-                  : undefined
-              }
-            >
-              <input
-                type="number"
-                inputMode="numeric"
-                min="1"
-                max="100"
-                step="1"
-                value={plan.intakePercent}
-                onChange={(event) =>
-                  patch({
-                    intakePercent: numberOrNull(event.target.value) ?? 0,
-                  })
-                }
-              />
-            </Field>
-            <Field
-              label={hasOverrides ? m.currentTotalTime : m.finishTime}
-              help={m.timeHelp}
-              error={
-                issueByField.get("finishTime")
-                  ? m.validation.duration
-                  : undefined
-              }
-            >
-              <input
-                key={`finish-${hasOverrides}-${plan.enteredFinishMinutes}-${summary?.totalMinutes ?? ""}`}
-                inputMode="numeric"
-                placeholder="14:30"
-                readOnly={hasOverrides}
-                defaultValue={
-                  hasOverrides && summary
-                    ? formatDuration(summary.totalMinutes)
-                    : plan.enteredFinishMinutes === null
-                      ? ""
-                      : formatDuration(plan.enteredFinishMinutes)
-                }
-                onBlur={(event) => {
-                  if (!hasOverrides)
-                    patch({
-                      enteredFinishMinutes: parseDuration(event.target.value),
-                    });
-                }}
-              />
-            </Field>
-          </div>
-          {hasOverrides && !newTotalMode && (
-            <button
-              className="text-button"
-              type="button"
-              onClick={() => {
-                setNewTotalValue(
-                  summary ? formatDuration(summary.totalMinutes) : "",
-                );
-                setNewTotalMode(true);
-              }}
-            >
-              {m.setNewTotal}
-            </button>
-          )}
-          {newTotalMode && (
-            <form className="inline-form" onSubmit={commitNewTotal}>
-              <input
-                aria-label={m.finishTime}
-                value={newTotalValue}
-                onChange={(event) => setNewTotalValue(event.target.value)}
-                placeholder="14:30"
-              />
-              <button className="button" type="submit">
-                {m.save}
-              </button>
-              <button
-                className="button button-secondary"
-                type="button"
-                onClick={() => setNewTotalMode(false)}
+        {page === "catalogue" ? (
+          <NutritionCataloguePage language={plan.language} />
+        ) : (
+          <>
+            {notice && (
+              <div
+                className={`notice ${notice === "storageFailed" ? "notice-error" : ""}`}
+                role="status"
               >
-                {m.cancel}
-              </button>
-            </form>
-          )}
-        </section>
+                {m[notice]}
+                <button
+                  type="button"
+                  className="icon-button"
+                  onClick={() => setNotice(null)}
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+              </div>
+            )}
 
-        <section className="panel">
-          <div className="section-heading">
-            <span className="step">02</span>
-            <h2>{m.course}</h2>
-          </div>
-          <div className="segmented-control" aria-label={m.course}>
-            <button
-              type="button"
-              aria-pressed={plan.courseMode === "manual"}
-              onClick={() => switchMode("manual")}
-            >
-              {m.manual}
-            </button>
-            <button
-              type="button"
-              aria-pressed={plan.courseMode === "gpx"}
-              onClick={() => switchMode("gpx")}
-            >
-              {m.gpx}
-            </button>
-          </div>
-
-          {plan.courseMode === "manual" ? (
-            <div className="form-grid course-inputs">
-              <Field
-                label={`${m.distance} (${m.distanceUnit})`}
-                error={
-                  issueByField.get("course.distanceKm")
-                    ? m.validation.distancePositive
-                    : undefined
-                }
-              >
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  min="0"
-                  step="0.1"
-                  disabled={plan.stations.length > 0}
-                  value={geometry?.distanceKm || ""}
-                  onChange={(event) =>
-                    setManualGeometry("distanceKm", event.target.value)
+            <section className="panel">
+              <div className="section-heading">
+                <span className="step">01</span>
+                <h2>{m.raceDetails}</h2>
+              </div>
+              <div className="form-grid">
+                <Field
+                  label={m.raceName}
+                  error={
+                    issueByField.get("raceName")
+                      ? m.validation.required
+                      : undefined
                   }
-                />
-              </Field>
-              <Field label={`${m.ascent} (${m.elevationUnit})`}>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min="0"
-                  step="1"
-                  disabled={plan.stations.length > 0}
-                  value={geometry?.ascentM ?? ""}
-                  onChange={(event) =>
-                    setManualGeometry("ascentM", event.target.value)
+                >
+                  <input
+                    value={plan.raceName}
+                    onChange={(event) =>
+                      patch({ raceName: event.target.value })
+                    }
+                    required
+                  />
+                </Field>
+                <Field
+                  label={`${m.weight} (${m.weightUnit})`}
+                  error={
+                    issueByField.get("weightKg")
+                      ? m.validation.weightRange
+                      : undefined
                   }
-                />
-              </Field>
-              <Field label={`${m.descent} (${m.elevationUnit})`}>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min="0"
-                  step="1"
-                  disabled={plan.stations.length > 0}
-                  value={geometry?.descentM ?? ""}
-                  onChange={(event) =>
-                    setManualGeometry("descentM", event.target.value)
+                >
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min="40"
+                    max="150"
+                    step="1"
+                    value={plan.weightKg ?? ""}
+                    onChange={(event) =>
+                      patch({ weightKg: numberOrNull(event.target.value) })
+                    }
+                  />
+                </Field>
+                <Field
+                  label={`${m.intake} (%)`}
+                  help={m.intakeHelp}
+                  error={
+                    issueByField.get("intakePercent")
+                      ? m.validation.percentRange
+                      : undefined
                   }
-                />
-              </Field>
-            </div>
-          ) : (
-            <div className="upload-box">
-              <input
-                ref={fileInputRef}
-                type="file"
-                aria-label={m.chooseGpx}
-                accept=".gpx,application/gpx+xml,application/xml,text/xml"
-                onChange={(event) => void handleGpx(event)}
-              />
-              {processingGpx && <p role="status">{m.processing}</p>}
-              {gpxError && (
-                <p className="field-error" role="alert">
-                  {m.gpxErrors[gpxError]}
-                </p>
-              )}
-              {plan.course?.mode === "gpx" && (
+                >
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min="1"
+                    max="100"
+                    step="1"
+                    value={plan.intakePercent}
+                    onChange={(event) =>
+                      patch({
+                        intakePercent: numberOrNull(event.target.value) ?? 0,
+                      })
+                    }
+                  />
+                </Field>
+                <Field
+                  label={hasOverrides ? m.currentTotalTime : m.finishTime}
+                  help={m.timeHelp}
+                  error={
+                    issueByField.get("finishTime")
+                      ? m.validation.duration
+                      : undefined
+                  }
+                >
+                  <input
+                    key={`finish-${hasOverrides}-${plan.enteredFinishMinutes}-${summary?.totalMinutes ?? ""}`}
+                    inputMode="numeric"
+                    placeholder="14:30"
+                    readOnly={hasOverrides}
+                    defaultValue={
+                      hasOverrides && summary
+                        ? formatDuration(summary.totalMinutes)
+                        : plan.enteredFinishMinutes === null
+                          ? ""
+                          : formatDuration(plan.enteredFinishMinutes)
+                    }
+                    onBlur={(event) => {
+                      if (!hasOverrides)
+                        patch({
+                          enteredFinishMinutes: parseDuration(
+                            event.target.value,
+                          ),
+                        });
+                    }}
+                  />
+                </Field>
+              </div>
+              {hasOverrides && !newTotalMode && (
                 <button
                   className="text-button"
                   type="button"
                   onClick={() => {
-                    patch({
-                      course: null,
-                      stations: [],
-                      segmentTimeOverrides: {},
-                    });
-                    if (fileInputRef.current) fileInputRef.current.value = "";
+                    setNewTotalValue(
+                      summary ? formatDuration(summary.totalMinutes) : "",
+                    );
+                    setNewTotalMode(true);
                   }}
                 >
-                  {m.removeGpx}
+                  {m.setNewTotal}
                 </button>
               )}
-            </div>
-          )}
+              {newTotalMode && (
+                <form className="inline-form" onSubmit={commitNewTotal}>
+                  <input
+                    aria-label={m.finishTime}
+                    value={newTotalValue}
+                    onChange={(event) => setNewTotalValue(event.target.value)}
+                    placeholder="14:30"
+                  />
+                  <button className="button" type="submit">
+                    {m.save}
+                  </button>
+                  <button
+                    className="button button-secondary"
+                    type="button"
+                    onClick={() => setNewTotalMode(false)}
+                  >
+                    {m.cancel}
+                  </button>
+                </form>
+              )}
+            </section>
 
-          {geometry && geometry.distanceKm > 0 && (
-            <GeometryStrip geometry={geometry} language={plan.language} m={m} />
-          )}
-        </section>
-
-        {geometry && geometry.distanceKm > 0 && (
-          <section className="panel">
-            <div className="section-heading with-action">
-              <div>
-                <span className="step">03</span>
-                <h2>{m.aidStations}</h2>
+            <section className="panel">
+              <div className="section-heading">
+                <span className="step">02</span>
+                <h2>{m.course}</h2>
               </div>
-              <button className="button" type="button" onClick={openAddStation}>
-                + {m.addStation}
-              </button>
-            </div>
-            {plan.stations.length === 0 ? (
-              <p className="empty-state">{m.noStations}</p>
+              <div className="segmented-control" aria-label={m.course}>
+                <button
+                  type="button"
+                  aria-pressed={plan.courseMode === "manual"}
+                  onClick={() => switchMode("manual")}
+                >
+                  {m.manual}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={plan.courseMode === "gpx"}
+                  onClick={() => switchMode("gpx")}
+                >
+                  {m.gpx}
+                </button>
+              </div>
+
+              {plan.courseMode === "manual" ? (
+                <div className="form-grid course-inputs">
+                  <Field
+                    label={`${m.distance} (${m.distanceUnit})`}
+                    error={
+                      issueByField.get("course.distanceKm")
+                        ? m.validation.distancePositive
+                        : undefined
+                    }
+                  >
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.1"
+                      disabled={plan.stations.length > 0}
+                      value={geometry?.distanceKm || ""}
+                      onChange={(event) =>
+                        setManualGeometry("distanceKm", event.target.value)
+                      }
+                    />
+                  </Field>
+                  <Field label={`${m.ascent} (${m.elevationUnit})`}>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      step="1"
+                      disabled={plan.stations.length > 0}
+                      value={geometry?.ascentM ?? ""}
+                      onChange={(event) =>
+                        setManualGeometry("ascentM", event.target.value)
+                      }
+                    />
+                  </Field>
+                  <Field label={`${m.descent} (${m.elevationUnit})`}>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      step="1"
+                      disabled={plan.stations.length > 0}
+                      value={geometry?.descentM ?? ""}
+                      onChange={(event) =>
+                        setManualGeometry("descentM", event.target.value)
+                      }
+                    />
+                  </Field>
+                </div>
+              ) : (
+                <div className="upload-box">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    aria-label={m.chooseGpx}
+                    accept=".gpx,application/gpx+xml,application/xml,text/xml"
+                    onChange={(event) => void handleGpx(event)}
+                  />
+                  {processingGpx && <p role="status">{m.processing}</p>}
+                  {gpxError && (
+                    <p className="field-error" role="alert">
+                      {m.gpxErrors[gpxError]}
+                    </p>
+                  )}
+                  {plan.course?.mode === "gpx" && (
+                    <button
+                      className="text-button"
+                      type="button"
+                      onClick={() => {
+                        patch({
+                          course: null,
+                          stations: [],
+                          segmentTimeOverrides: {},
+                        });
+                        if (fileInputRef.current)
+                          fileInputRef.current.value = "";
+                      }}
+                    >
+                      {m.removeGpx}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {geometry && geometry.distanceKm > 0 && (
+                <GeometryStrip
+                  geometry={geometry}
+                  language={plan.language}
+                  m={m}
+                />
+              )}
+            </section>
+
+            {geometry && geometry.distanceKm > 0 && (
+              <section className="panel">
+                <div className="section-heading with-action">
+                  <div>
+                    <span className="step">03</span>
+                    <h2>{m.aidStations}</h2>
+                  </div>
+                  <button
+                    className="button"
+                    type="button"
+                    onClick={openAddStation}
+                  >
+                    + {m.addStation}
+                  </button>
+                </div>
+                {plan.stations.length === 0 ? (
+                  <p className="empty-state">{m.noStations}</p>
+                ) : (
+                  <div className="station-list">
+                    {sortStations(plan.stations).map((station) => (
+                      <article className="station-item" key={station.id}>
+                        <div>
+                          <strong>{station.name}</strong>
+                          <span>
+                            km{" "}
+                            {formatNumber(station.kilometer, plan.language, {
+                              maximumFractionDigits: 2,
+                            })}
+                          </span>
+                          {station.waterOnly && (
+                            <span className="badge">{m.waterOnly}</span>
+                          )}
+                        </div>
+                        <div className="item-actions">
+                          <button
+                            type="button"
+                            className="text-button"
+                            onClick={() => openEditStation(station)}
+                          >
+                            {m.editStation}
+                          </button>
+                          <button
+                            type="button"
+                            className="text-button danger"
+                            onClick={() => deleteStation(station)}
+                          >
+                            {m.deleteStation}
+                          </button>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {stationDraft && geometry && (
+              <StationForm
+                draft={stationDraft}
+                setDraft={setStationDraft}
+                error={stationError}
+                manual={plan.course?.mode === "manual"}
+                m={m}
+                onSubmit={saveStation}
+                onCancel={() => setStationDraft(null)}
+              />
+            )}
+
+            {summary ? (
+              <section className="results" aria-live="polite">
+                <div className="section-heading light-heading">
+                  <span className="step">04</span>
+                  <h2>{m.summary}</h2>
+                </div>
+                <div className="summary-grid">
+                  <SummaryValue
+                    label={m.distance}
+                    value={formatNumber(
+                      summary.geometry.distanceKm,
+                      plan.language,
+                      { maximumFractionDigits: 1 },
+                    )}
+                    unit={m.distanceUnit}
+                  />
+                  <SummaryValue
+                    label={m.ascent}
+                    value={formatNumber(
+                      Math.round(summary.geometry.ascentM),
+                      plan.language,
+                    )}
+                    unit={m.elevationUnit}
+                  />
+                  <SummaryValue
+                    label={m.descent}
+                    value={formatNumber(
+                      Math.round(summary.geometry.descentM),
+                      plan.language,
+                    )}
+                    unit={m.elevationUnit}
+                  />
+                  <SummaryValue
+                    label={m.time}
+                    value={formatDuration(summary.totalMinutes)}
+                  />
+                </div>
+
+                <h3>{m.nutrition}</h3>
+                <div className="nutrition-grid">
+                  {nutritionItems(summary.nutrition, plan.language, m).map(
+                    ([label, value, unit]) => (
+                      <SummaryValue
+                        key={label}
+                        label={label}
+                        value={value}
+                        unit={unit}
+                      />
+                    ),
+                  )}
+                </div>
+
+                <h3>{m.segmentPlan}</h3>
+                <div className="segment-grid">
+                  {summary.segments.map((segment) => (
+                    <article className="segment-card" key={segment.id}>
+                      <div className="segment-card-header">
+                        <div>
+                          <p className="segment-route">
+                            {segment.from.name} → {segment.to.name}
+                          </p>
+                          <p className="segment-meta">
+                            {formatNumber(segment.distanceKm, plan.language, {
+                              maximumFractionDigits: 2,
+                            })}{" "}
+                            {m.distanceUnit}
+                            {" · "}↗{" "}
+                            {formatNumber(
+                              Math.round(segment.ascentM),
+                              plan.language,
+                            )}{" "}
+                            {m.elevationUnit}
+                            {" · "}↘{" "}
+                            {formatNumber(
+                              Math.round(segment.descentM),
+                              plan.language,
+                            )}{" "}
+                            {m.elevationUnit}
+                          </p>
+                        </div>
+                        {segment.to.waterOnly && (
+                          <span className="badge badge-light">
+                            {m.waterOnly}
+                          </span>
+                        )}
+                      </div>
+                      <label className="segment-time">
+                        <span>{m.timeSinceLast}</span>
+                        <input
+                          key={`${segment.id}-${segment.durationMinutes}`}
+                          defaultValue={
+                            segment.durationMinutes === null
+                              ? ""
+                              : formatDuration(segment.durationMinutes)
+                          }
+                          onBlur={(event) => {
+                            const minutes = parseDuration(event.target.value);
+                            if (minutes === null) return;
+                            patch({
+                              timingMode: "overridden",
+                              segmentTimeOverrides: {
+                                ...plan.segmentTimeOverrides,
+                                [segment.id]: minutes,
+                              },
+                            });
+                          }}
+                        />
+                      </label>
+                      <dl>
+                        {nutritionItems(
+                          segment.nutrition,
+                          plan.language,
+                          m,
+                        ).map(([label, value, unit]) => (
+                          <div key={label}>
+                            <dt>{label}</dt>
+                            <dd>
+                              {value} <small>{unit}</small>
+                            </dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </article>
+                  ))}
+                </div>
+                <aside className="disclaimer">
+                  <strong>{m.disclaimerTitle}</strong>
+                  <p>{m.disclaimer}</p>
+                </aside>
+              </section>
             ) : (
-              <div className="station-list">
-                {sortStations(plan.stations).map((station) => (
-                  <article className="station-item" key={station.id}>
-                    <div>
-                      <strong>{station.name}</strong>
-                      <span>
-                        km{" "}
-                        {formatNumber(station.kilometer, plan.language, {
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
-                      {station.waterOnly && (
-                        <span className="badge">{m.waterOnly}</span>
-                      )}
-                    </div>
-                    <div className="item-actions">
-                      <button
-                        type="button"
-                        className="text-button"
-                        onClick={() => openEditStation(station)}
-                      >
-                        {m.editStation}
-                      </button>
-                      <button
-                        type="button"
-                        className="text-button danger"
-                        onClick={() => deleteStation(station)}
-                      >
-                        {m.deleteStation}
-                      </button>
-                    </div>
-                  </article>
-                ))}
+              <div className="incomplete">
+                <p>{m.incompleteTitle}</p>
               </div>
             )}
-          </section>
-        )}
-
-        {stationDraft && geometry && (
-          <StationForm
-            draft={stationDraft}
-            setDraft={setStationDraft}
-            error={stationError}
-            manual={plan.course?.mode === "manual"}
-            m={m}
-            onSubmit={saveStation}
-            onCancel={() => setStationDraft(null)}
-          />
-        )}
-
-        {summary ? (
-          <section className="results" aria-live="polite">
-            <div className="section-heading light-heading">
-              <span className="step">04</span>
-              <h2>{m.summary}</h2>
-            </div>
-            <div className="summary-grid">
-              <SummaryValue
-                label={m.distance}
-                value={formatNumber(
-                  summary.geometry.distanceKm,
-                  plan.language,
-                  { maximumFractionDigits: 1 },
-                )}
-                unit={m.distanceUnit}
-              />
-              <SummaryValue
-                label={m.ascent}
-                value={formatNumber(
-                  Math.round(summary.geometry.ascentM),
-                  plan.language,
-                )}
-                unit={m.elevationUnit}
-              />
-              <SummaryValue
-                label={m.descent}
-                value={formatNumber(
-                  Math.round(summary.geometry.descentM),
-                  plan.language,
-                )}
-                unit={m.elevationUnit}
-              />
-              <SummaryValue
-                label={m.time}
-                value={formatDuration(summary.totalMinutes)}
-              />
-            </div>
-
-            <h3>{m.nutrition}</h3>
-            <div className="nutrition-grid">
-              {nutritionItems(summary.nutrition, plan.language, m).map(
-                ([label, value, unit]) => (
-                  <SummaryValue
-                    key={label}
-                    label={label}
-                    value={value}
-                    unit={unit}
-                  />
-                ),
-              )}
-            </div>
-
-            <h3>{m.segmentPlan}</h3>
-            <div className="segment-grid">
-              {summary.segments.map((segment) => (
-                <article className="segment-card" key={segment.id}>
-                  <div className="segment-card-header">
-                    <div>
-                      <p className="segment-route">
-                        {segment.from.name} → {segment.to.name}
-                      </p>
-                      <p className="segment-meta">
-                        {formatNumber(segment.distanceKm, plan.language, {
-                          maximumFractionDigits: 2,
-                        })}{" "}
-                        {m.distanceUnit}
-                        {" · "}↗{" "}
-                        {formatNumber(
-                          Math.round(segment.ascentM),
-                          plan.language,
-                        )}{" "}
-                        {m.elevationUnit}
-                        {" · "}↘{" "}
-                        {formatNumber(
-                          Math.round(segment.descentM),
-                          plan.language,
-                        )}{" "}
-                        {m.elevationUnit}
-                      </p>
-                    </div>
-                    {segment.to.waterOnly && (
-                      <span className="badge badge-light">{m.waterOnly}</span>
-                    )}
-                  </div>
-                  <label className="segment-time">
-                    <span>{m.timeSinceLast}</span>
-                    <input
-                      key={`${segment.id}-${segment.durationMinutes}`}
-                      defaultValue={
-                        segment.durationMinutes === null
-                          ? ""
-                          : formatDuration(segment.durationMinutes)
-                      }
-                      onBlur={(event) => {
-                        const minutes = parseDuration(event.target.value);
-                        if (minutes === null) return;
-                        patch({
-                          timingMode: "overridden",
-                          segmentTimeOverrides: {
-                            ...plan.segmentTimeOverrides,
-                            [segment.id]: minutes,
-                          },
-                        });
-                      }}
-                    />
-                  </label>
-                  <dl>
-                    {nutritionItems(segment.nutrition, plan.language, m).map(
-                      ([label, value, unit]) => (
-                        <div key={label}>
-                          <dt>{label}</dt>
-                          <dd>
-                            {value} <small>{unit}</small>
-                          </dd>
-                        </div>
-                      ),
-                    )}
-                  </dl>
-                </article>
-              ))}
-            </div>
-            <aside className="disclaimer">
-              <strong>{m.disclaimerTitle}</strong>
-              <p>{m.disclaimer}</p>
-            </aside>
-          </section>
-        ) : (
-          <div className="incomplete">
-            <p>{m.incompleteTitle}</p>
-          </div>
+          </>
         )}
       </main>
       <footer>Ultra Race Nutrition · {new Date().getFullYear()}</footer>
@@ -975,7 +1025,7 @@ function SummaryValue({
   unit?: string;
 }) {
   return (
-    <div className="summary-value">
+    <div className="summary-value" data-value={value}>
       <span>{label}</span>
       <strong>
         {value} {unit && <small>{unit}</small>}
