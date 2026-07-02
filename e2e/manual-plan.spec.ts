@@ -11,12 +11,13 @@ test("calculates and restores the manual reference plan", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Overall nutrition targets" }),
   ).toBeVisible();
+  await page.getByLabel("Language").selectOption("de");
   await expect(page.getByText("1.600", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("480", { exact: true }).first()).toBeVisible();
 
   await page.waitForTimeout(500);
   await page.reload();
-  await expect(page.getByLabel(/Weight.*kg/i)).toHaveValue("80");
+  await expect(page.getByLabel(/Gewicht.*kg/i)).toHaveValue("80");
   await expect(page.getByText("1.600", { exact: true }).first()).toBeVisible();
 });
 

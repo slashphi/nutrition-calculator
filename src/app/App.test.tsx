@@ -21,12 +21,15 @@ describe("App", () => {
     fireEvent.change(screen.getByLabelText(/Elevation gain.*m/i), {
       target: { value: "1000" },
     });
+    fireEvent.change(screen.getByLabelText("Language"), {
+      target: { value: "de" },
+    });
 
     await waitFor(() => {
       expect(screen.getAllByText("1.600").length).toBeGreaterThan(0);
       expect(screen.getAllByText("480").length).toBeGreaterThan(0);
       expect(screen.getAllByText("120").length).toBeGreaterThan(0);
-      expect(screen.getAllByText("1.5").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("1,5").length).toBeGreaterThan(0);
       expect(screen.getAllByText("750").length).toBeGreaterThan(0);
     });
   });
