@@ -21,12 +21,15 @@ describe("App", () => {
     fireEvent.change(screen.getByLabelText(/Elevation gain.*m/i), {
       target: { value: "1000" },
     });
+    fireEvent.change(screen.getByLabelText("Language"), {
+      target: { value: "de" },
+    });
 
     await waitFor(() => {
       expect(screen.getAllByText("1.600").length).toBeGreaterThan(0);
       expect(screen.getAllByText("480").length).toBeGreaterThan(0);
       expect(screen.getAllByText("120").length).toBeGreaterThan(0);
-      expect(screen.getAllByText("1.5").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("1,5").length).toBeGreaterThan(0);
       expect(screen.getAllByText("750").length).toBeGreaterThan(0);
     });
   });
@@ -39,5 +42,36 @@ describe("App", () => {
       target: { value: "de" },
     });
     expect(screen.getByLabelText("Rennname")).toHaveValue("Alpine 100");
+  });
+
+  it("opens the nutrition catalogue and adds a custom option", async () => {
+    render(<App />);
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Nutrition options" }),
+    );
+    expect(
+      await screen.findByRole("heading", { name: "Nutrition options" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Testprodukt")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Add option/ }));
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: "Rice cake" },
+    });
+    fireEvent.change(screen.getByLabelText("Carbohydrates (g)"), {
+      target: { value: "30" },
+    });
+    fireEvent.change(screen.getByLabelText("Sodium (mg)"), {
+      target: { value: "150" },
+    });
+    fireEvent.change(screen.getByLabelText("Water (L)"), {
+      target: { value: "0.0" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByText("Rice cake")).toBeInTheDocument();
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Nutrition option added.",
+    );
   });
 });
