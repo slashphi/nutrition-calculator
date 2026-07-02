@@ -554,6 +554,7 @@ function OptionDialog({
             <label className="field">
               <span>{m.inputMethod}</span>
               <select
+                aria-label={m.inputMethod}
                 value={form.method}
                 onChange={(e) =>
                   setForm({
@@ -569,6 +570,7 @@ function OptionDialog({
             <label className="field">
               <span>{form.method === "sodium" ? m.sodium : m.salt}</span>
               <input
+                aria-label={form.method === "sodium" ? m.sodium : m.salt}
                 inputMode="numeric"
                 value={form.mineral}
                 onChange={(e) => setForm({ ...form, mineral: e.target.value })}
