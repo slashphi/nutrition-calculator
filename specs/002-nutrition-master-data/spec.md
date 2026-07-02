@@ -318,4 +318,3 @@ And the page has no page-level horizontal overflow.
 - Exporting catalogue data.
 - Synchronization between browsers or devices.
 - Server-side storage or user accounts.
-

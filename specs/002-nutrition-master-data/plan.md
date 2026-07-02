@@ -222,4 +222,3 @@ operation, and absence of runtime network requests.
   insufficient and the tradeoff is documented.
 - Run formatting, type checking, linting, unit/component tests, production
   build, and Playwright tests before completing the feature.
-
