@@ -646,7 +646,7 @@ export function App() {
                 >
                   <input
                     key={`finish-${hasOverrides}-${plan.enteredFinishMinutes}-${summary?.totalMinutes ?? ""}`}
-                    inputMode="numeric"
+                    inputMode="text"
                     placeholder="14:30"
                     readOnly={hasOverrides}
                     defaultValue={
@@ -686,6 +686,7 @@ export function App() {
                   <input
                     aria-label={m.finishTime}
                     value={newTotalValue}
+                    inputMode="text"
                     onChange={(event) => setNewTotalValue(event.target.value)}
                     placeholder="14:30"
                   />
@@ -754,7 +755,7 @@ export function App() {
                       min="0"
                       step="1"
                       disabled={plan.stations.length > 0}
-                      value={geometry?.ascentM ?? ""}
+                      value={geometry?.ascentM || ""}
                       onChange={(event) =>
                         setManualGeometry("ascentM", event.target.value)
                       }
@@ -767,7 +768,7 @@ export function App() {
                       min="0"
                       step="1"
                       disabled={plan.stations.length > 0}
-                      value={geometry?.descentM ?? ""}
+                      value={geometry?.descentM || ""}
                       onChange={(event) =>
                         setManualGeometry("descentM", event.target.value)
                       }
@@ -982,6 +983,7 @@ export function App() {
                               ? ""
                               : formatDuration(segment.durationMinutes)
                           }
+                          inputMode="text"
                           onBlur={(event) => {
                             const minutes = parseDuration(event.target.value);
                             if (minutes === null) return;
@@ -1184,6 +1186,11 @@ function StationForm({
                       min="0"
                       step="1"
                       value={draft.beforeAscent}
+                      inputMode="numeric"
+                      onFocus={() => {
+                        if (draft.beforeAscent === "0")
+                          update({ beforeAscent: "" });
+                      }}
                       onChange={(event) =>
                         update({ beforeAscent: event.target.value })
                       }
@@ -1195,6 +1202,11 @@ function StationForm({
                       min="0"
                       step="1"
                       value={draft.beforeDescent}
+                      inputMode="numeric"
+                      onFocus={() => {
+                        if (draft.beforeDescent === "0")
+                          update({ beforeDescent: "" });
+                      }}
                       onChange={(event) =>
                         update({ beforeDescent: event.target.value })
                       }
@@ -1209,6 +1221,11 @@ function StationForm({
                       min="0"
                       step="1"
                       value={draft.afterAscent}
+                      inputMode="numeric"
+                      onFocus={() => {
+                        if (draft.afterAscent === "0")
+                          update({ afterAscent: "" });
+                      }}
                       onChange={(event) =>
                         update({ afterAscent: event.target.value })
                       }
@@ -1220,6 +1237,11 @@ function StationForm({
                       min="0"
                       step="1"
                       value={draft.afterDescent}
+                      inputMode="numeric"
+                      onFocus={() => {
+                        if (draft.afterDescent === "0")
+                          update({ afterDescent: "" });
+                      }}
                       onChange={(event) =>
                         update({ afterDescent: event.target.value })
                       }

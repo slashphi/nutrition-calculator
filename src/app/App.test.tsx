@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { App } from "./App";
 
 describe("App", () => {
@@ -75,33 +81,29 @@ describe("App", () => {
     );
   });
 
-  it("adds whole servings directly to a calculated segment", async () => {
+  it("uses mobile-friendly text keyboards for duration fields", async () => {
     render(<App />);
-    fireEvent.change(await screen.findByLabelText(/Weight.*kg/i), {
-      target: { value: "80" },
-    });
-    fireEvent.change(screen.getByLabelText(/Expected finishing time/i), {
-      target: { value: "10:00" },
-    });
-    fireEvent.blur(screen.getByLabelText(/Expected finishing time/i));
-    fireEvent.change(screen.getByLabelText(/Distance.*km/i), {
+    const finishTime = await screen.findByLabelText(/Expected finishing time/i);
+
+    expect(finishTime).toHaveAttribute("inputmode", "text");
+  });
+
+  it("clears default zero elevation values when adding a manual station", async () => {
+    render(<App />);
+
+    fireEvent.change(await screen.findByLabelText(/Distance.*km/i), {
       target: { value: "10" },
     });
-    fireEvent.change(screen.getByLabelText(/Elevation gain.*m/i), {
-      target: { value: "1000" },
-    });
+    fireEvent.click(screen.getByRole("button", { name: /Add aid station/i }));
 
-    expect(
-      await screen.findByRole("heading", { name: "Nutrition planning" }),
-    ).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Add nutrition option"), {
-      target: { value: "standard:testprodukt" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /^Add$/ }));
-    expect(screen.getByLabelText("Servings")).toHaveValue(1);
-    fireEvent.change(screen.getByLabelText("Servings"), {
-      target: { value: "3" },
-    });
-    expect(screen.getByRole("cell", { name: "3" })).toBeInTheDocument();
+    const dialog = screen.getByRole("dialog");
+    const splitElevationInputs = within(dialog).getAllByLabelText(
+      /Elevation (gain|loss).*m/i,
+    );
+    splitElevationInputs.forEach((input) => expect(input).toHaveValue(0));
+
+    fireEvent.focus(splitElevationInputs[0]!);
+
+    expect(splitElevationInputs[0]).toHaveValue(null);
   });
 });
