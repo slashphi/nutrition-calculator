@@ -61,7 +61,7 @@ export interface Segment extends SegmentGeometry {
 }
 
 export interface RacePlan {
-  schemaVersion: 1;
+  schemaVersion: 2;
   language: Language;
   raceName: string;
   weightKg: number | null;
@@ -72,6 +72,13 @@ export interface RacePlan {
   course: Course | null;
   stations: AidStation[];
   segmentTimeOverrides: Record<SegmentId, number>;
+  nutritionAssignments: NutritionAssignment[];
+}
+
+export interface NutritionAssignment {
+  segmentId: SegmentId;
+  optionId: string;
+  servings: number;
 }
 
 export interface NutritionResult {
@@ -104,7 +111,7 @@ export function segmentId(fromId: string, toId: string): SegmentId {
 
 export function createDefaultPlan(language: Language): RacePlan {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     language,
     raceName: "My race",
     weightKg: null,
@@ -115,5 +122,6 @@ export function createDefaultPlan(language: Language): RacePlan {
     course: null,
     stations: [],
     segmentTimeOverrides: {},
+    nutritionAssignments: [],
   };
 }

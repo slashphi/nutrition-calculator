@@ -1,13 +1,17 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import csv from "../data/nutrition-options.csv?raw";
-import { CATALOGUE_VERSION } from "../data/catalogueVersion";
-import type { Language } from "../domain/model";
 import {
-  defaultCatalogueView,
-  type CatalogueState,
-  type CatalogueViewState,
-  type NutritionOption,
-  type SortField,
+  useMemo,
+  useState,
+  type Dispatch,
+  type FormEvent,
+  type SetStateAction,
+} from "react";
+import csv from "../data/nutrition-options.csv?raw";
+import type { Language } from "../domain/model";
+import type {
+  CatalogueState,
+  CatalogueViewState,
+  NutritionOption,
+  SortField,
 } from "./model";
 import { parseCatalogueCsv } from "./parseCatalogueCsv";
 import { selectCatalogue } from "./selectors";
@@ -17,10 +21,8 @@ import {
   saltToSodium,
   validateOption,
 } from "./validation";
-import {
-  loadCatalogue,
-  saveCatalogue,
-} from "../persistence/catalogueRepository";
+import { saveCatalogue } from "../persistence/catalogueRepository";
+import { bundledCatalogue } from "./useCatalogueState";
 
 const text = {
   en: {
@@ -123,13 +125,6 @@ const text = {
 
 const importedCatalogue = parseCatalogueCsv(csv);
 
-function defaultCatalogue(): CatalogueState {
-  return {
-    catalogueVersion: CATALOGUE_VERSION,
-    options: importedCatalogue.options,
-  };
-}
-
 interface Draft {
   editingId?: string;
   name: string;
@@ -139,65 +134,28 @@ interface Draft {
   water: string;
 }
 
-export function NutritionCataloguePage({ language }: { language: Language }) {
+export function NutritionCataloguePage({
+  language,
+  state,
+  setState,
+  view,
+  setView,
+  lifecycleNotice,
+}: {
+  language: Language;
+  state: CatalogueState;
+  setState: Dispatch<SetStateAction<CatalogueState>>;
+  view: CatalogueViewState;
+  setView: Dispatch<SetStateAction<CatalogueViewState>>;
+  lifecycleNotice?: "versionReload" | "storage" | null;
+}) {
   const m = text[language];
-  const languageRef = useRef(language);
-  const [state, setState] = useState<CatalogueState>(defaultCatalogue);
-  const [view, setView] = useState<CatalogueViewState>(defaultCatalogueView);
-  const [ready, setReady] = useState(false);
   const [notice, setNotice] = useState("");
   const [draft, setDraft] = useState<Draft | null>(null);
   const result = useMemo(
     () => selectCatalogue(state.options, view),
     [state, view],
   );
-
-  useEffect(() => {
-    languageRef.current = language;
-  }, [language]);
-
-  useEffect(() => {
-    let active = true;
-    loadCatalogue()
-      .then((stored) => {
-        if (!active) return;
-        setView(stored.view);
-        if (stored.state?.catalogueVersion === CATALOGUE_VERSION)
-          setState(stored.state);
-        else {
-          setState(defaultCatalogue());
-          if (stored.state) setNotice(text[languageRef.current].versionReload);
-        }
-      })
-      .catch(() => setNotice(text[languageRef.current].storage))
-      .finally(() => active && setReady(true));
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!ready) return;
-    const timer = window.setTimeout(
-      () =>
-        void saveCatalogue(state, view).catch(() =>
-          setNotice(text[languageRef.current].storage),
-        ),
-      300,
-    );
-    return () => window.clearTimeout(timer);
-  }, [state, view, ready]);
-
-  useEffect(() => {
-    if (!ready) return;
-    const flush = () => {
-      void saveCatalogue(state, view).catch(() =>
-        setNotice(text[languageRef.current].storage),
-      );
-    };
-    window.addEventListener("pagehide", flush);
-    return () => window.removeEventListener("pagehide", flush);
-  }, [state, view, ready]);
 
   function updateView(patch: Partial<CatalogueViewState>, reset = true) {
     setView((current) => ({
@@ -236,7 +194,7 @@ export function NutritionCataloguePage({ language }: { language: Language }) {
   }
   function reload() {
     if (!window.confirm(m.confirmReload)) return;
-    setState(defaultCatalogue());
+    setState(bundledCatalogue());
     setNotice(m.successReload);
   }
   function remove(option: NutritionOption) {
@@ -262,9 +220,9 @@ export function NutritionCataloguePage({ language }: { language: Language }) {
 
   return (
     <>
-      {(notice || warning) && (
+      {(notice || warning || lifecycleNotice) && (
         <div className="notice" role="status">
-          {notice || warning}
+          {notice || warning || (lifecycleNotice ? m[lifecycleNotice] : "")}
         </div>
       )}
       <section className="panel catalogue">

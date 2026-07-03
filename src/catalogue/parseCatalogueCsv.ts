@@ -12,6 +12,10 @@ export interface CsvResult {
 
 const HEADER = "name;carbohydraths;sodium;water";
 
+export function standardOptionId(name: string): string {
+  return `standard:${encodeURIComponent(normalizeName(name))}`;
+}
+
 export function parseCatalogueCsv(csv: string): CsvResult {
   const lines = csv
     .replace(/^\uFEFF/, "")
@@ -47,7 +51,7 @@ export function parseCatalogueCsv(csv: string): CsvResult {
     if (names.has(normalized)) return;
     names.add(normalized);
     options.push({
-      id: `standard-${row}-${normalized.replace(/[^a-z0-9]+/g, "-")}`,
+      id: standardOptionId(name),
       name,
       carbohydratesG,
       sodiumMg,

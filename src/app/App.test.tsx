@@ -74,4 +74,34 @@ describe("App", () => {
       "Nutrition option added.",
     );
   });
+
+  it("adds whole servings directly to a calculated segment", async () => {
+    render(<App />);
+    fireEvent.change(await screen.findByLabelText(/Weight.*kg/i), {
+      target: { value: "80" },
+    });
+    fireEvent.change(screen.getByLabelText(/Expected finishing time/i), {
+      target: { value: "10:00" },
+    });
+    fireEvent.blur(screen.getByLabelText(/Expected finishing time/i));
+    fireEvent.change(screen.getByLabelText(/Distance.*km/i), {
+      target: { value: "10" },
+    });
+    fireEvent.change(screen.getByLabelText(/Elevation gain.*m/i), {
+      target: { value: "1000" },
+    });
+
+    expect(
+      await screen.findByRole("heading", { name: "Nutrition planning" }),
+    ).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Add nutrition option"), {
+      target: { value: "standard:testprodukt" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^Add$/ }));
+    expect(screen.getByLabelText("Servings")).toHaveValue(1);
+    fireEvent.change(screen.getByLabelText("Servings"), {
+      target: { value: "3" },
+    });
+    expect(screen.getByRole("cell", { name: "3" })).toBeInTheDocument();
+  });
 });

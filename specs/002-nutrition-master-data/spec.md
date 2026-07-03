@@ -1,6 +1,6 @@
 # Nutrition Master Data — Feature Specification
 
-Status: Draft  
+Status: Implemented  
 Target platform: Existing static web application hosted on GitHub Pages  
 Depends on: Race Nutrition Calculator version 1
 

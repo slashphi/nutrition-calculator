@@ -1,4 +1,4 @@
-import { parseCatalogueCsv } from "./parseCatalogueCsv";
+import { parseCatalogueCsv, standardOptionId } from "./parseCatalogueCsv";
 import { selectCatalogue } from "./selectors";
 import { defaultCatalogueView, type NutritionOption } from "./model";
 import {
@@ -72,6 +72,22 @@ describe("catalogue CSV", () => {
     expect(() => parseCatalogueCsv("name;carbs;sodium;water")).toThrow(
       "catalogue.invalidHeader",
     );
+  });
+
+  it("keeps standard IDs stable across rows and nutrient changes", () => {
+    const first = parseCatalogueCsv(
+      "name;carbohydraths;sodium;water\nOther;1;2;0.0\nÄ Gel;24;200;0.1",
+    );
+    const second = parseCatalogueCsv(
+      "name;carbohydraths;sodium;water\nÄ Gel;30;250;0.2\nOther;1;2;0.0",
+    );
+    expect(first.options[1]?.id).toBe(second.options[0]?.id);
+    expect(first.options[1]?.id).toBe(standardOptionId(" ä GEL "));
+  });
+
+  it("does not collide for names with the same simple slug", () => {
+    expect(standardOptionId("A+B")).not.toBe(standardOptionId("A B"));
+    expect(standardOptionId("Ä")).not.toBe(standardOptionId("A"));
   });
 });
 
