@@ -543,14 +543,22 @@ export function App() {
 
       <main>
         {page === "catalogue" ? (
-          <NutritionCataloguePage
-            language={plan.language}
-            state={catalogue.state}
-            setState={catalogue.setState}
-            view={catalogue.view}
-            setView={catalogue.setView}
-            lifecycleNotice={catalogue.notice}
-          />
+          catalogue.ready ? (
+            <NutritionCataloguePage
+              language={plan.language}
+              state={catalogue.state}
+              setState={catalogue.setState}
+              view={catalogue.view}
+              setView={catalogue.setView}
+              lifecycleNotice={catalogue.notice}
+            />
+          ) : (
+            <p role="status">
+              {plan.language === "de"
+                ? "Katalog wird geladen…"
+                : "Loading catalogue…"}
+            </p>
+          )
         ) : (
           <>
             {notice && (
