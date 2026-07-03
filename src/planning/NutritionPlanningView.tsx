@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { NutritionOption } from "../catalogue/model";
 import type {
   CalculatedPlan,
@@ -123,7 +123,9 @@ export function NutritionPlanningView({
     options,
   });
   const revisionRef = useRef(revision);
-  revisionRef.current = revision;
+  useEffect(() => {
+    revisionRef.current = revision;
+  }, [revision]);
   const segments = useMemo(
     () => segmentPlanning(calculated, assignments, options),
     [calculated, assignments, options],
