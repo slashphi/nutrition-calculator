@@ -1,6 +1,6 @@
 # Nutrition Master Data — Feature Specification
 
-Status: Draft  
+Status: Implemented; browser verification pending
 Target platform: Existing static web application hosted on GitHub Pages  
 Depends on: Race Nutrition Calculator version 1
 
@@ -19,13 +19,14 @@ race or segment plan is outside this feature's scope.
 - **Catalogue reload:** Replacement of all catalogue data with the current
   valid rows from the bundled CSV.
 
-Product names are master data, not localized application text.
+Brands and product names are master data, not localized application text.
 
 ## 2. Nutrition-option data
 
 Every nutrition option shall contain:
 
 - A stable identifier.
+- A required brand.
 - A required name.
 - Carbohydrates per serving in whole grams.
 - Sodium per serving in whole milligrams.
@@ -39,10 +40,12 @@ shall reject fractional carbohydrate and sodium values, scientific notation,
 `NaN`, infinity, and values outside the safe range. There is no smaller
 business-defined maximum.
 
-Names shall be trimmed before validation and storage. An empty or
-whitespace-only name is invalid. Names shall be unique across standard and
-custom options after trimming and case-insensitive comparison. Their original
-capitalization shall otherwise be preserved.
+Brands and names shall be trimmed before validation and storage. An empty or
+whitespace-only brand or name is invalid. The combination of brand and name
+shall be unique across standard and custom options after trimming and
+case-insensitive comparison of both fields. The same name may therefore be used
+by different brands, and the same brand may be used for different names. Their
+original capitalization shall otherwise be preserved.
 
 ## 3. Sodium and salt entry
 
@@ -68,15 +71,15 @@ The repository shall contain a UTF-8, semicolon-delimited CSV file with this
 exact header:
 
 ```csv
-name;carbohydraths;sodium;water
+brand;name;carbohydraths;sodium;water
 ```
 
 The misspelled `carbohydraths` header is part of the agreed import contract.
 The initial file shall contain:
 
 ```csv
-name;carbohydraths;sodium;water
-Testprodukt;24;200;0.1
+brand;name;carbohydraths;sodium;water
+Testmarke;Testprodukt;24;200;0.1
 ```
 
 The application shall initialize the catalogue from the bundled CSV when no
@@ -87,8 +90,8 @@ CSV rows shall use the same validation rules as user-entered options. Blank
 rows shall be ignored. Invalid rows shall be skipped while valid rows remain
 usable. The interface shall show a localized warning that identifies invalid
 skipped rows sufficiently for the user to locate them. If multiple CSV rows
-have names that compare as duplicates, the first valid row shall win and later
-duplicates shall be skipped silently.
+have brand/name combinations that compare as duplicates, the first valid row
+shall win and later duplicates shall be skipped silently.
 
 The bundled catalogue shall have a version derived from or changed with its
 contents. When an application release contains a different catalogue version,
@@ -114,6 +117,7 @@ calculator and a separate nutrition-options maintenance page.
 The maintenance page shall show standard and custom options together. Each
 option shall display:
 
+- Brand.
 - Name.
 - Carbohydrates in g.
 - Sodium in mg.
@@ -149,15 +153,16 @@ shall show a localized completion status.
 
 The catalogue shall provide:
 
-- Name search.
+- Brand and name search.
 - A source filter with all, standard, and custom values.
 - An availability filter with all, available, and unavailable values.
-- Sorting by name, carbohydrates, sodium, water, availability, or source.
+- Sorting by brand, name, carbohydrates, sodium, water, availability, or
+  source.
 - Pagination with a fixed page size of 20 options.
 
-Default sorting shall be name ascending. Search shall match names only and
-shall be case-insensitive. Standard and custom options shall not be separated
-into groups.
+Default sorting shall be brand ascending, with name ascending as the secondary
+order. Search shall match brands and names and shall be case-insensitive.
+Standard and custom options shall not be separated into groups.
 
 Changing search, a filter, or sorting shall return to page 1. When deletion or
 other data changes make the current page unavailable, the page shall be
@@ -188,8 +193,8 @@ to defaults without invalidating otherwise valid catalogue data.
 
 All page headings, navigation labels, field labels, units, validation errors,
 warnings, confirmations, source/status labels, and success messages shall be
-available in German and English. Product names shall never be translated.
-Changing language shall preserve catalogue data and view state.
+available in German and English. Brands and product names shall never be
+translated. Changing language shall preserve catalogue data and view state.
 
 The page shall be usable on mobile and desktop:
 
@@ -213,19 +218,22 @@ Given no stored catalogue
 When the application initializes  
 Then it imports every valid row from the bundled CSV as an available standard
 option  
-And `Testprodukt` contains 24 g carbohydrates, 200 mg sodium, and 0.1 L water.
+And `Testprodukt` has the brand `Testmarke`  
+And it contains 24 g carbohydrates, 200 mg sodium, and 0.1 L water.
 
 ### AC-2 Invalid and duplicate CSV rows
 
-Given a CSV containing valid, invalid, and duplicate-name rows  
+Given a CSV containing valid, invalid, and duplicate brand/name rows  
 When it is imported  
 Then valid unique rows are available  
 And invalid rows are skipped and reported  
-And the first valid duplicate wins while later duplicates are skipped silently.
+And the first valid duplicate brand/name combination wins while later
+duplicates are skipped silently.
 
 ### AC-3 Add custom option with sodium
 
-Given a unique valid name and non-negative nutrient values  
+Given a required brand, a required name, a unique brand/name combination, and
+non-negative nutrient values  
 When the user creates an option using sodium entry  
 Then an available custom option is stored  
 And the dialog closes and announces success.
@@ -240,9 +248,10 @@ And editing the option later opens in sodium-entry mode.
 
 ### AC-5 Validation and uniqueness
 
-Given an empty name, a case-insensitive duplicate name, a negative value, a
-fractional carbohydrate or sodium value, a water value not divisible by
-0.1 L, scientific notation, or an unsafe/non-finite value  
+Given an empty brand, an empty name, a case-insensitive duplicate brand/name
+combination, a negative value, a fractional carbohydrate or sodium value, a
+water value not divisible by 0.1 L, scientific notation, or an
+unsafe/non-finite value  
 Then the option cannot be saved  
 And the relevant field explains the problem.
 
@@ -278,8 +287,8 @@ And explains that user catalogue changes were replaced.
 ### AC-10 Search, filters, and sorting
 
 Given more than one option exists  
-When the user searches by name, filters by source or availability, or sorts by
-any displayed column  
+When the user searches by brand or name, filters by source or availability, or
+sorts by any displayed column  
 Then the visible options match all active controls  
 And changing one of those controls returns pagination to page 1.
 
@@ -301,7 +310,7 @@ And no catalogue data is transmitted.
 
 Given the user switches between German and English  
 Then catalogue UI text changes language  
-And product names, catalogue data, and view state remain unchanged.
+And brands, product names, catalogue data, and view state remain unchanged.
 
 ### AC-14 Responsive and keyboard use
 
@@ -313,7 +322,7 @@ And the page has no page-level horizontal overflow.
 ## 10. Out of scope
 
 - Selecting nutrition options in a race or segment plan.
-- Quantities, stock counts, prices, brands, serving sizes, or package metadata.
+- Quantities, stock counts, prices, serving sizes, or package metadata.
 - Importing user-supplied CSV files.
 - Exporting catalogue data.
 - Synchronization between browsers or devices.

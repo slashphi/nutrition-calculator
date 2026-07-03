@@ -1,6 +1,6 @@
 # Nutrition Master Data — Technical Implementation Plan
 
-Status: Proposed  
+Status: Implemented; browser verification pending
 Source specification: [spec.md](./spec.md)
 
 ## 1. Technical approach
@@ -11,9 +11,13 @@ state and render either the calculator or catalogue page. Navigation shall use
 semantic links or buttons with a current-page indicator; browser deep links are
 not required by this feature.
 
+Extend the implemented catalogue so every standard and custom option carries a
+required brand. Treat the normalized brand/name pair as the option's business
+key throughout validation, import, persistence, search, and sorting.
+
 Bundle the standard catalogue as a raw UTF-8 asset imported at build time.
-Parse it locally without a CSV dependency because the fixed contract has four
-semicolon-delimited fields and does not require quoted delimiters. Add an
+Parse it locally without a CSV dependency because the fixed contract has five
+semicolon-delimited fields and does not require quoted delimiters. Keep the
 explicit catalogue-content version beside the asset. Changing the CSV requires
 changing this version; an automated test shall prevent a content/version
 mismatch by checking a committed content digest.
@@ -59,6 +63,7 @@ type NutritionOptionSource = "standard" | "custom";
 
 interface NutritionOption {
   id: string;
+  brand: string;
   name: string;
   carbohydratesG: number;
   sodiumMg: number;
@@ -77,6 +82,7 @@ interface CatalogueViewState {
   source: "all" | NutritionOptionSource;
   availability: "all" | "available" | "unavailable";
   sortBy:
+    | "brand"
     | "name"
     | "carbohydratesG"
     | "sodiumMg"
@@ -91,24 +97,27 @@ interface CatalogueViewState {
 Store water as integer decilitres so the 0.1 L increment is exact. Convert to
 litres only for display and CSV parsing. Generate custom IDs with
 `crypto.randomUUID()`. Generate deterministic standard IDs from normalized
-names plus the catalogue version or row identity; consumers must not retain
-standard IDs across catalogue replacement.
+brand/name pairs plus the catalogue version or row identity; consumers must
+not retain standard IDs across catalogue replacement.
 
-Normalize names with `trim().toLocaleLowerCase("und")` for uniqueness and
-search while preserving the trimmed display value. Use a stable secondary
-name/ID comparison for deterministic sorting.
+Normalize brands and names independently with
+`trim().toLocaleLowerCase("und")`. Build the uniqueness key from both normalized
+values while preserving their trimmed display values. Default sorting compares
+brand, then name, then ID for deterministic results. Other sort fields use
+brand/name/ID as stable tie-breakers.
 
 ## 4. Import and validation
 
 The parser shall:
 
 1. Normalize an optional UTF-8 byte-order mark and line endings.
-2. require the exact four-field header;
+2. require the exact five-field header
+   `brand;name;carbohydraths;sodium;water`;
 3. split each non-blank row on semicolons;
-4. validate the name and numeric fields;
+4. validate the required brand, required name, and numeric fields;
 5. convert water litres to exact integer decilitres;
-6. retain the first valid normalized name;
-7. silently discard later duplicate names;
+6. retain the first valid normalized brand/name pair;
+7. silently discard later duplicate brand/name pairs;
 8. return valid options plus row-numbered issues for other invalid rows.
 
 Treat an invalid header as a catalogue-level import error. The checked-in
@@ -131,7 +140,7 @@ Compose pure selectors in this order:
 
 ```text
 all options
-  → case-insensitive name search
+  → case-insensitive brand-or-name search
   → source filter
   → availability filter
   → stable sort
@@ -144,7 +153,14 @@ Keep form drafts outside persisted catalogue state.
 
 ## 6. Persistence and catalogue lifecycle
 
-Upgrade the existing IndexedDB schema and add stores or records for:
+Update the persisted catalogue structure so every restored option requires a
+valid brand. Bump the bundled catalogue version together with the five-column
+CSV. Existing stored catalogues without brands shall fail structural
+validation and follow the specified catalogue-recovery path: replace options
+from the updated bundle, reset availability, remove custom options, preserve
+valid view preferences, and show the localized recovery notice.
+
+The existing IndexedDB stores or records remain responsible for:
 
 - Current catalogue and bundled catalogue version.
 - Catalogue view preferences.
@@ -170,16 +186,16 @@ memory and show one non-blocking warning.
 Add persistent top-level navigation to the calculator and nutrition-options
 page. Use the existing language state as the shared application language.
 
-Catalogue controls comprise name search, two labelled filters, sortable column
-headers, a fixed-size paginator, an add action, and a reload action. Use a
-semantic table at wide viewports and equivalent labelled cards at narrow
-viewports. Avoid rendering both representations to assistive technology
-simultaneously.
+Catalogue controls comprise combined brand/name search, two labelled filters,
+sortable brand and name columns plus the existing sortable columns, a
+fixed-size paginator, an add action, and a reload action. Use a semantic table
+at wide viewports and equivalent labelled cards at narrow viewports. Avoid
+rendering both representations to assistive technology simultaneously.
 
 Use native `dialog` where browser/test support is adequate, with a small shared
 dialog wrapper for focus placement, containment, Escape, return focus, and
-accessible labelling. The add/edit form selects sodium or salt input. Salt
-input updates an `aria-live` sodium preview.
+accessible labelling. The add/edit form requires brand and name fields and
+selects sodium or salt input. Salt input updates an `aria-live` sodium preview.
 
 Availability should use a labelled checkbox or switch. Standard rows omit edit
 and delete controls entirely. Use confirmation dialogs for custom deletion and
@@ -189,30 +205,32 @@ catalogue reload.
 
 ### Unit tests
 
-Cover CSV header/row parsing, byte-order mark and line endings, invalid row
-reporting, silent duplicate handling, numeric boundaries, water conversion,
-name normalization, salt rounding, permissions, selectors, stable sorting,
-filter combinations, page reset, and page clamping.
+Cover the five-column CSV header and row parsing, byte-order mark and line
+endings, missing brands, invalid row reporting, silent duplicate brand/name
+handling, numeric boundaries, water conversion, independent brand/name
+normalization, salt rounding, permissions, selectors, stable sorting, filter
+combinations, page reset, and page clamping.
 
 ### Component tests
 
-Cover navigation and language preservation, table/card data, add/edit
-validation, salt preview, success announcements, availability, absent standard
-actions, delete/reload confirmations, error notices, and keyboard dialog
-behavior.
+Cover navigation and language preservation, brand and name rendering in
+table/cards, required-brand add/edit validation, duplicate-pair validation,
+salt preview, success announcements, availability, absent standard actions,
+delete/reload confirmations, error notices, and keyboard dialog behavior.
 
 ### Persistence tests
 
-Cover first initialization, ordinary restoration, automatic version reload,
-manual reload, destructive replacement semantics, view-state preservation,
-partial invalid preference recovery, invalid catalogue recovery, and storage
-failure.
+Cover first initialization, ordinary restoration with brands, automatic
+version reload, recovery of pre-brand stored catalogues, manual reload,
+destructive replacement semantics, view-state preservation, partial invalid
+preference recovery, invalid catalogue recovery, and storage failure.
 
 ### End-to-end tests
 
-Cover the primary custom-option lifecycle, search/filter/sort/pagination,
-refresh restoration, reload, language switching, mobile layout, keyboard
-operation, and absence of runtime network requests.
+Cover the primary branded custom-option lifecycle, brand/name search and
+sorting, filter/pagination behavior, refresh restoration, reload, language
+switching, mobile layout, keyboard operation, and absence of runtime network
+requests.
 
 ## 9. Delivery constraints
 

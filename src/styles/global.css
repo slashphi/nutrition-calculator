@@ -568,6 +568,81 @@ input:disabled {
   overflow-x: auto;
 }
 
+.nutrition-planner {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgb(255 255 255 / 25%);
+}
+
+.planning-segments {
+  display: grid;
+  gap: 1rem;
+}
+
+.planning-segment {
+  padding: 1rem;
+  color: var(--ink);
+  background: var(--paper);
+  border-radius: var(--radius);
+}
+
+.planning-segment h4,
+.planning-comparison h4 {
+  margin-top: 0;
+}
+
+.planning-status {
+  font-weight: 700;
+}
+
+.planning-assignments {
+  display: grid;
+  gap: 0.5rem;
+  margin-block: 0.75rem;
+}
+
+.planning-assignment {
+  display: grid;
+  grid-template-columns: minmax(8rem, 1fr) minmax(7rem, auto) auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.planning-assignment label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.planning-assignment input {
+  max-width: 7rem;
+}
+
+.planning-comparison dl {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.planning-comparison dl > div {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.4fr) 1fr;
+  gap: 0.5rem;
+}
+
+.planning-comparison dt {
+  font-weight: 700;
+}
+
+.planning-comparison dd {
+  margin: 0;
+}
+
+@media (max-width: 42rem) {
+  .planning-assignment,
+  .planning-comparison dl > div {
+    grid-template-columns: 1fr;
+  }
+}
+
 .catalogue-table {
   width: 100%;
   border-collapse: collapse;

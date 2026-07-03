@@ -1,5 +1,5 @@
 import type { NutritionOption } from "./model";
-import { normalizeName, parseWater, parseWhole } from "./validation";
+import { normalizeName, optionKey, parseWater, parseWhole } from "./validation";
 
 export interface CsvIssue {
   row: number;
@@ -10,7 +10,11 @@ export interface CsvResult {
   issues: CsvIssue[];
 }
 
-const HEADER = "name;carbohydraths;sodium;water";
+const HEADER = "brand;name;carbohydraths;sodium;water";
+
+export function standardOptionId(brand: string, name: string): string {
+  return `standard:${encodeURIComponent(normalizeName(brand))}:${encodeURIComponent(normalizeName(name))}`;
+}
 
 export function parseCatalogueCsv(csv: string): CsvResult {
   const lines = csv
@@ -20,23 +24,32 @@ export function parseCatalogueCsv(csv: string): CsvResult {
   if (lines[0] !== HEADER) throw new Error("catalogue.invalidHeader");
   const options: NutritionOption[] = [];
   const issues: CsvIssue[] = [];
-  const names = new Set<string>();
+  const keys = new Set<string>();
   lines.slice(1).forEach((line, index) => {
     if (!line.trim()) return;
     const row = index + 2;
     const fields = line.split(";");
-    if (fields.length !== 4) {
+    if (fields.length !== 5) {
       issues.push({ row });
       return;
     }
-    const [rawName = "", rawCarbs = "", rawSodium = "", rawWater = ""] = fields;
+    const [
+      rawBrand = "",
+      rawName = "",
+      rawCarbs = "",
+      rawSodium = "",
+      rawWater = "",
+    ] = fields;
+    const brand = rawBrand.trim();
     const name = rawName.trim();
-    const normalized = normalizeName(name);
+    const normalizedBrand = normalizeName(brand);
+    const normalizedName = normalizeName(name);
     const carbohydratesG = parseWhole(rawCarbs);
     const sodiumMg = parseWhole(rawSodium);
     const waterDeciliters = parseWater(rawWater);
     if (
-      !normalized ||
+      !normalizedBrand ||
+      !normalizedName ||
       carbohydratesG === null ||
       sodiumMg === null ||
       waterDeciliters === null
@@ -44,10 +57,12 @@ export function parseCatalogueCsv(csv: string): CsvResult {
       issues.push({ row });
       return;
     }
-    if (names.has(normalized)) return;
-    names.add(normalized);
+    const key = optionKey(brand, name);
+    if (keys.has(key)) return;
+    keys.add(key);
     options.push({
-      id: `standard-${row}-${normalized.replace(/[^a-z0-9]+/g, "-")}`,
+      id: standardOptionId(brand, name),
+      brand,
       name,
       carbohydratesG,
       sodiumMg,

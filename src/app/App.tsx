@@ -34,6 +34,13 @@ import { parseGpx } from "../gpx/parseGpx";
 import { detectLanguage, formatNumber, messages } from "../i18n/locale";
 import { loadPlan, savePlan } from "../persistence/planRepository";
 import { NutritionCataloguePage } from "../catalogue/NutritionCataloguePage";
+import { useCatalogueState } from "../catalogue/useCatalogueState";
+import { NutritionPlanningView } from "../planning/NutritionPlanningView";
+import {
+  combineSegments,
+  reconcileCatalogue,
+  splitSegment,
+} from "../planning/reconciliation";
 
 type Notice = "restored" | "restoreFailed" | "storageFailed" | null;
 
@@ -132,6 +139,7 @@ export function App() {
   const [newTotalMode, setNewTotalMode] = useState(false);
   const [newTotalValue, setNewTotalValue] = useState("");
   const [page, setPage] = useState<"calculator" | "catalogue">("calculator");
+  const catalogue = useCatalogueState(plan.language);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const m = messages(plan.language);
 
@@ -163,6 +171,24 @@ export function App() {
     }, 350);
     return () => window.clearTimeout(timer);
   }, [plan, ready]);
+
+  useEffect(() => {
+    if (!ready || !catalogue.ready) return;
+    const reconciled = reconcileCatalogue(
+      plan.nutritionAssignments,
+      new Set(catalogue.state.options.map((option) => option.id)),
+    );
+    if (reconciled.length !== plan.nutritionAssignments.length)
+      dispatch({
+        type: "patch",
+        patch: { nutritionAssignments: reconciled },
+      });
+  }, [
+    ready,
+    catalogue.ready,
+    catalogue.state.options,
+    plan.nutritionAssignments,
+  ]);
 
   useEffect(() => {
     if (!ready) return;
@@ -203,6 +229,7 @@ export function App() {
       stations: [],
       segmentTimeOverrides: {},
       timingMode: "allocated",
+      nutritionAssignments: [],
     });
     setGpxError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -239,10 +266,16 @@ export function App() {
         stations: [],
         segmentTimeOverrides: {},
         timingMode: "allocated",
+        nutritionAssignments: [],
       });
     } catch (error) {
       setGpxError(error instanceof GpxError ? error.code : "gpx.invalidXml");
-      patch({ course: null, stations: [], segmentTimeOverrides: {} });
+      patch({
+        course: null,
+        stations: [],
+        segmentTimeOverrides: {},
+        nutritionAssignments: [],
+      });
     } finally {
       setProcessingGpx(false);
     }
@@ -365,11 +398,23 @@ export function App() {
       [...otherStations, nextStation],
       plan.language,
     );
+    let nutritionAssignments = plan.nutritionAssignments;
+    if (!existing) {
+      const kilometers = stationMap(plan, geometry.distanceKm);
+      const split = selection.segmentGeometry.find(
+        (segment) =>
+          (kilometers[segment.fromId] ?? 0) < kilometer &&
+          kilometer < (kilometers[segment.toId] ?? geometry.distanceKm),
+      );
+      if (split)
+        nutritionAssignments = splitSegment(nutritionAssignments, split.id);
+    }
     patch({
       course: nextCourse,
       stations,
       segmentTimeOverrides: {},
       timingMode: "allocated",
+      nutritionAssignments,
     });
     setStationDraft(null);
   }
@@ -378,6 +423,20 @@ export function App() {
     let nextCourse = plan.course;
     let nextOverrides: Record<string, number> = {};
     let nextTimingMode: RacePlan["timingMode"] = "allocated";
+    const leftSegment = selection.segmentGeometry.find(
+      (segment) => segment.toId === station.id,
+    );
+    const rightSegment = selection.segmentGeometry.find(
+      (segment) => segment.fromId === station.id,
+    );
+    const nutritionAssignments =
+      leftSegment && rightSegment
+        ? combineSegments(
+            plan.nutritionAssignments,
+            [leftSegment.id, rightSegment.id],
+            segmentId(leftSegment.fromId, rightSegment.toId),
+          )
+        : plan.nutritionAssignments;
     if (plan.course?.mode === "manual") {
       const left = selection.result?.segments.find(
         (segment) => segment.toId === station.id,
@@ -417,6 +476,7 @@ export function App() {
       ),
       segmentTimeOverrides: nextOverrides,
       timingMode: nextTimingMode,
+      nutritionAssignments,
     });
   }
 
@@ -483,7 +543,22 @@ export function App() {
 
       <main>
         {page === "catalogue" ? (
-          <NutritionCataloguePage language={plan.language} />
+          catalogue.ready ? (
+            <NutritionCataloguePage
+              language={plan.language}
+              state={catalogue.state}
+              setState={catalogue.setState}
+              view={catalogue.view}
+              setView={catalogue.setView}
+              lifecycleNotice={catalogue.notice}
+            />
+          ) : (
+            <p role="status">
+              {plan.language === "de"
+                ? "Katalog wird geladen…"
+                : "Loading catalogue…"}
+            </p>
+          )
         ) : (
           <>
             {notice && (
@@ -732,6 +807,7 @@ export function App() {
                           course: null,
                           stations: [],
                           segmentTimeOverrides: {},
+                          nutritionAssignments: [],
                         });
                         if (fileInputRef.current)
                           fileInputRef.current.value = "";
@@ -946,6 +1022,17 @@ export function App() {
                     </article>
                   ))}
                 </div>
+                {catalogue.ready && (
+                  <NutritionPlanningView
+                    language={plan.language}
+                    calculated={summary}
+                    assignments={plan.nutritionAssignments}
+                    options={catalogue.state.options}
+                    onChange={(nutritionAssignments) =>
+                      patch({ nutritionAssignments })
+                    }
+                  />
+                )}
                 <aside className="disclaimer">
                   <strong>{m.disclaimerTitle}</strong>
                   <p>{m.disclaimer}</p>

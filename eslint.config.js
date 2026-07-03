@@ -19,6 +19,8 @@ export default tseslint.config(
         FileReader: "readonly",
         DOMParser: "readonly",
         requestAnimationFrame: "readonly",
+        Worker: "readonly",
+        self: "readonly",
       },
     },
     plugins: {

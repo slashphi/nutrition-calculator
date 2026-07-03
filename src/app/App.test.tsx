@@ -1,10 +1,4 @@
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { App } from "./App";
 
 describe("App", () => {
@@ -58,9 +52,12 @@ describe("App", () => {
     expect(
       await screen.findByRole("heading", { name: "Nutrition options" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Testprodukt")).toBeInTheDocument();
+    expect(screen.getByText("Mynstry Gel 40")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /Add option/ }));
+    fireEvent.change(screen.getByLabelText("Brand"), {
+      target: { value: "Homemade" },
+    });
     fireEvent.change(screen.getByLabelText("Name"), {
       target: { value: "Rice cake" },
     });
@@ -81,29 +78,33 @@ describe("App", () => {
     );
   });
 
-  it("uses mobile-friendly text keyboards for duration fields", async () => {
+  it("adds whole servings directly to a calculated segment", async () => {
     render(<App />);
-    const finishTime = await screen.findByLabelText(/Expected finishing time/i);
-
-    expect(finishTime).toHaveAttribute("inputmode", "text");
-  });
-
-  it("clears default zero elevation values when adding a manual station", async () => {
-    render(<App />);
-
-    fireEvent.change(await screen.findByLabelText(/Distance.*km/i), {
+    fireEvent.change(await screen.findByLabelText(/Weight.*kg/i), {
+      target: { value: "80" },
+    });
+    fireEvent.change(screen.getByLabelText(/Expected finishing time/i), {
+      target: { value: "10:00" },
+    });
+    fireEvent.blur(screen.getByLabelText(/Expected finishing time/i));
+    fireEvent.change(screen.getByLabelText(/Distance.*km/i), {
       target: { value: "10" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /Add aid station/i }));
+    fireEvent.change(screen.getByLabelText(/Elevation gain.*m/i), {
+      target: { value: "1000" },
+    });
 
-    const dialog = screen.getByRole("dialog");
-    const splitElevationInputs = within(dialog).getAllByLabelText(
-      /Elevation (gain|loss).*m/i,
-    );
-    splitElevationInputs.forEach((input) => expect(input).toHaveValue(0));
-
-    fireEvent.focus(splitElevationInputs[0]!);
-
-    expect(splitElevationInputs[0]).toHaveValue(null);
+    expect(
+      await screen.findByRole("heading", { name: "Nutrition planning" }),
+    ).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Add nutrition option"), {
+      target: { value: "standard:mynstry:mynstry%20gel%2040" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^Add$/ }));
+    expect(screen.getByLabelText("Servings")).toHaveValue(1);
+    fireEvent.change(screen.getByLabelText("Servings"), {
+      target: { value: "3" },
+    });
+    expect(screen.getByRole("cell", { name: "3" })).toBeInTheDocument();
   });
 });

@@ -8,6 +8,7 @@ describe("catalogue repository", () => {
       options: [
         {
           id: "one",
+          brand: "Brand",
           name: "One",
           carbohydratesG: 1,
           sodiumMg: 2,
@@ -19,6 +20,32 @@ describe("catalogue repository", () => {
     };
     const view = { ...defaultCatalogueView, search: "one", page: 2 };
     await saveCatalogue(state, view);
-    await expect(loadCatalogue()).resolves.toEqual({ state, view });
+    await expect(loadCatalogue()).resolves.toEqual({
+      state,
+      view,
+      invalidState: false,
+    });
+  });
+
+  it("rejects stored options without a brand", async () => {
+    const state = {
+      catalogueVersion: "legacy",
+      options: [
+        {
+          id: "legacy",
+          name: "Legacy gel",
+          carbohydratesG: 1,
+          sodiumMg: 2,
+          waterDeciliters: 0,
+          available: true,
+          source: "custom",
+        },
+      ],
+    } as unknown as CatalogueState;
+    await saveCatalogue(state, defaultCatalogueView);
+    await expect(loadCatalogue()).resolves.toMatchObject({
+      state: null,
+      invalidState: true,
+    });
   });
 });
