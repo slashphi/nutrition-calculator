@@ -33,5 +33,5 @@ test("creates and can replace an automatic plan", async ({ page }) => {
   await expect(page.getByRole("status")).toContainText(
     "Automatic plan created.",
   );
-  await expect(page.getByLabel("Servings")).toHaveValue("7");
+  await expect(page.getByRole("row", { name: / 7 Available$/ })).toBeVisible();
 });
