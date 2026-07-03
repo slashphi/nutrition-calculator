@@ -2,13 +2,17 @@ import type { NutritionOption } from "./model";
 
 export type OptionInput = Pick<
   NutritionOption,
-  "name" | "carbohydratesG" | "sodiumMg" | "waterDeciliters"
+  "brand" | "name" | "carbohydratesG" | "sodiumMg" | "waterDeciliters"
 >;
 
 export type OptionErrors = Partial<Record<keyof OptionInput, string>>;
 
 export function normalizeName(name: string): string {
   return name.trim().toLocaleLowerCase("und");
+}
+
+export function optionKey(brand: string, name: string): string {
+  return `${normalizeName(brand)}\u0000${normalizeName(name)}`;
 }
 
 export function saltToSodium(saltMg: number): number {
@@ -25,12 +29,17 @@ export function validateOption(
   editingId?: string,
 ): OptionErrors {
   const errors: OptionErrors = {};
+  const normalizedBrand = normalizeName(input.brand);
   const normalized = normalizeName(input.name);
+  if (!normalizedBrand) errors.brand = "required";
   if (!normalized) errors.name = "required";
   else if (
+    normalizedBrand &&
     options.some(
       (option) =>
-        option.id !== editingId && normalizeName(option.name) === normalized,
+        option.id !== editingId &&
+        optionKey(option.brand, option.name) ===
+          optionKey(input.brand, input.name),
     )
   )
     errors.name = "duplicate";

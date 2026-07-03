@@ -1,11 +1,17 @@
 # Nutrition Master Data — Acceptance Criteria Verification
 
-Status: Implemented
+Status: Brand extension implemented; browser execution pending
 
-Automated domain, persistence, and component coverage passes locally. The
-Playwright catalogue workflow is implemented in
-`e2e/nutrition-catalogue.spec.ts`; local execution requires the missing host
-Chromium libraries and WebKit binary.
+All 52 Vitest tests, formatting, type checking, linting, and the production
+build pass locally. Brand coverage includes required-field and composite
+uniqueness validation, five-column CSV import, brand/name search, brand sorting,
+localized catalogue maintenance, planning labels, persistence restoration, and
+recovery from pre-brand stored data.
+
+The updated Playwright catalogue and planning workflows are implemented in
+`e2e/nutrition-catalogue.spec.ts` and `e2e/nutrition-planning.spec.ts`. Local
+execution is pending because the required Chromium and WebKit binaries are not
+installed on the host.
 
 | Criterion                               | Planned automated coverage                                                        |
 | --------------------------------------- | --------------------------------------------------------------------------------- |

@@ -2,6 +2,7 @@ export type NutritionOptionSource = "standard" | "custom";
 
 export interface NutritionOption {
   id: string;
+  brand: string;
   name: string;
   carbohydratesG: number;
   sodiumMg: number;
@@ -16,6 +17,7 @@ export interface CatalogueState {
 }
 
 export type SortField =
+  | "brand"
   | "name"
   | "carbohydratesG"
   | "sodiumMg"
@@ -36,7 +38,7 @@ export const defaultCatalogueView: CatalogueViewState = {
   search: "",
   source: "all",
   availability: "all",
-  sortBy: "name",
+  sortBy: "brand",
   sortDirection: "ascending",
   page: 1,
 };

@@ -27,9 +27,9 @@ export function useCatalogueState(language: Language) {
   const [state, setState] = useState<CatalogueState>(bundledCatalogue);
   const [view, setView] = useState<CatalogueViewState>(defaultCatalogueView);
   const [ready, setReady] = useState(false);
-  const [notice, setNotice] = useState<"versionReload" | "storage" | null>(
-    null,
-  );
+  const [notice, setNotice] = useState<
+    "versionReload" | "recovery" | "storage" | null
+  >(null);
 
   useEffect(() => {
     languageRef.current = language;
@@ -41,7 +41,10 @@ export function useCatalogueState(language: Language) {
       .then((stored) => {
         if (!active) return;
         setView(stored.view);
-        if (stored.state?.catalogueVersion === CATALOGUE_VERSION)
+        if (stored.invalidState) {
+          setState(bundledCatalogue());
+          setNotice("recovery");
+        } else if (stored.state?.catalogueVersion === CATALOGUE_VERSION)
           setState(stored.state);
         else {
           setState(bundledCatalogue());

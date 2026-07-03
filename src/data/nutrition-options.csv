@@ -1,6 +1,5 @@
-name;carbohydraths;sodium;water
-Mynstry Gel 40;40;0;0
-Scratch 70;70;0;0.5
-Sunn;70;0;0.5
-Water;0;0;0.5
-
+brand;name;carbohydraths;sodium;water
+Mynstry;Mynstry Gel 40;40;0;0
+Scratch;Scratch 70;70;0;0.5
+Sunn;Sunn;70;0;0.5
+Generic;Water;0;0;0.5

@@ -55,6 +55,9 @@ describe("App", () => {
     expect(screen.getByText("Mynstry Gel 40")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /Add option/ }));
+    fireEvent.change(screen.getByLabelText("Brand"), {
+      target: { value: "Homemade" },
+    });
     fireEvent.change(screen.getByLabelText("Name"), {
       target: { value: "Rice cake" },
     });
@@ -95,7 +98,7 @@ describe("App", () => {
       await screen.findByRole("heading", { name: "Nutrition planning" }),
     ).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Add nutrition option"), {
-      target: { value: "standard:Mynstry Gel 40" },
+      target: { value: "standard:mynstry:mynstry%20gel%2040" },
     });
     fireEvent.click(screen.getByRole("button", { name: /^Add$/ }));
     expect(screen.getByLabelText("Servings")).toHaveValue(1);

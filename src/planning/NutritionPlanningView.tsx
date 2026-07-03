@@ -264,7 +264,9 @@ export function NutritionPlanningView({
               if (!option) return null;
               return (
                 <tr key={total.optionId}>
-                  <th scope="row">{option.name}</th>
+                  <th scope="row">
+                    {option.brand} – {option.name}
+                  </th>
                   <td>{total.servings}</td>
                   <td>{option.available ? m.available : m.unavailable}</td>
                 </tr>
@@ -330,7 +332,7 @@ function SegmentEditor({
               )
               .map((option) => (
                 <option key={option.id} value={option.id}>
-                  {option.name}
+                  {option.brand} – {option.name}
                 </option>
               ))}
           </select>
@@ -356,7 +358,7 @@ function SegmentEditor({
           return (
             <div className="planning-assignment" key={option.id}>
               <span>
-                {option.name}
+                {option.brand} – {option.name}
                 {!option.available && ` · ${m.unavailable}`}
               </span>
               <label>

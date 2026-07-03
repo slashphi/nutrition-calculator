@@ -17,6 +17,7 @@ const option = (
   values: Partial<NutritionOption> = {},
 ): NutritionOption => ({
   id,
+  brand: "Test Brand",
   name: id,
   carbohydratesG: 10,
   waterDeciliters: 1,

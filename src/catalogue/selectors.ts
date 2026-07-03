@@ -10,7 +10,9 @@ export function selectCatalogue(
   const search = normalizeName(view.search);
   const filtered = options.filter(
     (option) =>
-      (!search || normalizeName(option.name).includes(search)) &&
+      (!search ||
+        normalizeName(option.brand).includes(search) ||
+        normalizeName(option.name).includes(search)) &&
       (view.source === "all" || option.source === view.source) &&
       (view.availability === "all" ||
         option.available === (view.availability === "available")),
@@ -25,6 +27,7 @@ export function selectCatalogue(
         : Number(left) - Number(right);
     return (
       primary * direction ||
+      a.brand.localeCompare(b.brand, undefined, { sensitivity: "base" }) ||
       a.name.localeCompare(b.name) ||
       a.id.localeCompare(b.id)
     );

@@ -15,12 +15,12 @@ test("manually plans whole servings and restores them", async ({ page }) => {
     page.getByRole("heading", { name: "Nutrition planning" }),
   ).toBeVisible();
   await page.getByLabel("Add nutrition option").selectOption({
-    label: "Testprodukt",
+    label: "Mynstry – Mynstry Gel 40",
   });
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await page.getByLabel("Servings").fill("3");
   await expect(
-    page.getByRole("row", { name: /Testprodukt 3 Available/ }),
+    page.getByRole("row", { name: /Mynstry – Mynstry Gel 40 3 Available/ }),
   ).toBeVisible();
 
   await page.reload();

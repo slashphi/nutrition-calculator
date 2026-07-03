@@ -7,12 +7,13 @@ test("maintains a custom nutrition option", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Nutrition options" }),
   ).toBeVisible();
-  await expect(page.getByText("Testprodukt")).toBeVisible();
+  await expect(page.getByText("Mynstry Gel 40")).toBeVisible();
 
   await page.getByRole("button", { name: /Add option/ }).click();
   const dialog = page.getByRole("dialog", { name: "Add nutrition option" });
   await expect(dialog).toBeVisible();
 
+  await dialog.getByLabel("Brand", { exact: true }).fill("Homemade");
   await dialog.getByLabel("Name", { exact: true }).fill("Rice cake");
   await dialog.getByLabel("Carbohydrates (g)", { exact: true }).fill("30");
   await dialog.getByLabel("Entry method", { exact: true }).selectOption("salt");

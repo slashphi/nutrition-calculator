@@ -29,7 +29,7 @@ const text = {
     title: "Nutrition options",
     add: "Add option",
     reload: "Reload defaults",
-    search: "Search by name",
+    search: "Search by brand or name",
     source: "Source",
     availability: "Availability",
     all: "All",
@@ -37,6 +37,7 @@ const text = {
     custom: "Custom",
     available: "Available",
     unavailable: "Unavailable",
+    brand: "Brand",
     name: "Name",
     carbs: "Carbohydrates (g)",
     sodium: "Sodium (mg)",
@@ -65,11 +66,14 @@ const text = {
     successReload: "Catalogue defaults reloaded.",
     versionReload:
       "The bundled catalogue changed. User catalogue changes were replaced.",
+    recovery:
+      "Invalid stored catalogue data was replaced with the bundled catalogue.",
     storage:
       "Changes cannot be saved in this browser, but the catalogue remains usable.",
     invalidRows: "Invalid CSV rows skipped:",
+    brandRequired: "Enter a brand.",
     required: "Enter a name.",
-    duplicate: "This name already exists.",
+    duplicate: "This brand and name combination already exists.",
     whole: "Enter a non-negative whole number.",
     waterError: "Enter a non-negative value in increments of 0.1 L.",
   },
@@ -77,7 +81,7 @@ const text = {
     title: "Verpflegungsoptionen",
     add: "Option hinzufügen",
     reload: "Standarddaten neu laden",
-    search: "Nach Name suchen",
+    search: "Nach Marke oder Name suchen",
     source: "Quelle",
     availability: "Verfügbarkeit",
     all: "Alle",
@@ -85,6 +89,7 @@ const text = {
     custom: "Benutzerdefiniert",
     available: "Verfügbar",
     unavailable: "Nicht verfügbar",
+    brand: "Marke",
     name: "Name",
     carbs: "Kohlenhydrate (g)",
     sodium: "Natrium (mg)",
@@ -113,11 +118,14 @@ const text = {
     successReload: "Standardkatalog neu geladen.",
     versionReload:
       "Der mitgelieferte Katalog wurde geändert. Benutzeränderungen wurden ersetzt.",
+    recovery:
+      "Ungültige gespeicherte Katalogdaten wurden durch den mitgelieferten Katalog ersetzt.",
     storage:
       "Änderungen können in diesem Browser nicht gespeichert werden; der Katalog bleibt nutzbar.",
     invalidRows: "Ungültige CSV-Zeilen übersprungen:",
+    brandRequired: "Marke eingeben.",
     required: "Name eingeben.",
-    duplicate: "Dieser Name existiert bereits.",
+    duplicate: "Diese Kombination aus Marke und Name existiert bereits.",
     whole: "Eine nicht negative ganze Zahl eingeben.",
     waterError: "Einen nicht negativen Wert in Schritten von 0,1 L eingeben.",
   },
@@ -127,6 +135,7 @@ const importedCatalogue = parseCatalogueCsv(csv);
 
 interface Draft {
   editingId?: string;
+  brand: string;
   name: string;
   carbohydrates: string;
   method: "sodium" | "salt";
@@ -147,7 +156,7 @@ export function NutritionCataloguePage({
   setState: Dispatch<SetStateAction<CatalogueState>>;
   view: CatalogueViewState;
   setView: Dispatch<SetStateAction<CatalogueViewState>>;
-  lifecycleNotice?: "versionReload" | "storage" | null;
+  lifecycleNotice?: "versionReload" | "recovery" | "storage" | null;
 }) {
   const m = text[language];
   const [notice, setNotice] = useState("");
@@ -175,6 +184,7 @@ export function NutritionCataloguePage({
   }
   function openAdd() {
     setDraft({
+      brand: "",
       name: "",
       carbohydrates: "0",
       method: "sodium",
@@ -185,6 +195,7 @@ export function NutritionCataloguePage({
   function openEdit(option: NutritionOption) {
     setDraft({
       editingId: option.id,
+      brand: option.brand,
       name: option.name,
       carbohydrates: String(option.carbohydratesG),
       method: "sodium",
@@ -291,6 +302,7 @@ export function NutritionCataloguePage({
                 <tr>
                   {(
                     [
+                      ["brand", m.brand],
                       ["name", m.name],
                       ["carbohydratesG", m.carbs],
                       ["sodiumMg", m.sodium],
@@ -316,6 +328,7 @@ export function NutritionCataloguePage({
               <tbody>
                 {result.options.map((option) => (
                   <tr key={option.id}>
+                    <td>{option.brand}</td>
                     <th scope="row">{option.name}</th>
                     <td>{option.carbohydratesG}</td>
                     <td>{option.sodiumMg}</td>
@@ -440,6 +453,7 @@ function OptionDialog({
     const carbohydratesG = parseWhole(form.carbohydrates);
     const waterDeciliters = parseWater(form.water);
     const input = {
+      brand: form.brand.trim(),
       name: form.name.trim(),
       carbohydratesG: carbohydratesG ?? -1,
       sodiumMg: sodium ?? -1,
@@ -489,9 +503,23 @@ function OptionDialog({
         <form onSubmit={submit}>
           <div className="form-grid">
             <label className="field">
-              <span>{m.name}</span>
+              <span>{m.brand}</span>
               <input
                 autoFocus
+                value={form.brand}
+                onChange={(e) => setForm({ ...form, brand: e.target.value })}
+              />
+              {errors.brand && (
+                <small className="field-error">
+                  {errors.brand === "required"
+                    ? m.brandRequired
+                    : errorText(errors.brand)}
+                </small>
+              )}
+            </label>
+            <label className="field">
+              <span>{m.name}</span>
+              <input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />

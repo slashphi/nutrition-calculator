@@ -1,6 +1,6 @@
 # Nutrition Master Data — Task Breakdown
 
-Status: Implemented  
+Status: Brand extension implemented; browser verification pending
 Implementation plan: [plan.md](./plan.md)
 
 Tasks are ordered by dependency. Each task shall leave all checks introduced up
@@ -97,3 +97,41 @@ to that point passing.
 2. **State and persistence:** T007–T015.
 3. **Usable catalogue:** T016–T027.
 4. **Release verification:** T028–T034.
+
+## Phase 7 — Required product brands
+
+- [x] **T035** Extend the nutrition-option and form-draft types with required
+      `brand`, and extend sortable fields and default view state with `brand`.
+- [x] **T036** Implement independent brand/name normalization, required-brand
+      validation, and case-insensitive uniqueness by normalized brand/name pair.
+      Update deterministic standard IDs to include both values.
+- [x] **T037** Change the bundled CSV contract to
+      `brand;name;carbohydraths;sodium;water`, populate every standard row with
+      its brand, and bump the catalogue version and content digest.
+- [x] **T038** Update CSV parsing and catalogue mutation invariants for required
+      brands and first-valid-row-wins handling of duplicate brand/name pairs.
+      Covers AC-1, AC-2, AC-3, and AC-5.
+- [x] **T039** Update selectors so search matches brand or name, add brand
+      sorting, and make brand/name/ID the deterministic tie-break order. Set
+      brand ascending with name ascending as the default order. Covers AC-10
+      and AC-11.
+- [x] **T040** Require and render the localized brand field in add/edit flows,
+      display brands in desktop and mobile catalogue views, and expose brand
+      sorting and combined brand/name search accessibly. Covers AC-3, AC-5,
+      AC-10, AC-13, and AC-14.
+- [x] **T041** Require brands during stored-catalogue validation and verify that
+      pre-brand catalogue data triggers bundle recovery while preserving valid
+      view preferences and existing race plans. Covers AC-9, AC-11, and AC-12.
+- [x] **T042** Extend unit, component, persistence, and end-to-end tests for
+      required brands, duplicate pairs, same-name/different-brand options,
+      five-column import, search, sorting, localization, responsive display,
+      refresh restoration, and recovery from pre-brand data.
+- [ ] **T043** Run formatting, type checking, linting, unit/component tests,
+      production build, and Playwright tests; then update
+      [verification.md](./verification.md) for the brand-extension coverage.
+
+## Brand-extension delivery slices
+
+1. **Domain and import:** T035–T038.
+2. **Catalogue behavior and UI:** T039–T040.
+3. **Persistence and verification:** T041–T043.
