@@ -154,6 +154,7 @@ shall show a localized completion status.
 The catalogue shall provide:
 
 - Brand and name search.
+- A brand filter presented as a dropdown with all catalogue brands.
 - A source filter with all, standard, and custom values.
 - An availability filter with all, available, and unavailable values.
 - Sorting by brand, name, carbohydrates, sodium, water, availability, or
@@ -287,8 +288,8 @@ And explains that user catalogue changes were replaced.
 ### AC-10 Search, filters, and sorting
 
 Given more than one option exists  
-When the user searches by brand or name, filters by source or availability, or
-sorts by any displayed column  
+When the user searches by brand or name, filters by brand, source, or
+availability, or sorts by any displayed column  
 Then the visible options match all active controls  
 And changing one of those controls returns pagination to page 1.
 
