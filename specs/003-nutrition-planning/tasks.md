@@ -78,8 +78,8 @@ to that point passing.
       diversity, water-option preference, and deterministic results. Covers
       AC-3.
 - [ ] **T027** Add representative large-catalogue/multi-segment benchmarks,
-      choose and document the browser runtime deadline, and verify clean abort
-      within that bound.
+      enforce and document the 10-second browser runtime deadline, and verify
+      clean abort within that bound.
 - [ ] **T028** Wrap the optimizer in a Web Worker with request revisions,
       cancellation, stale-result rejection, and atomic successful installation.
 - [ ] **T029** Add worker-client tests proving timeout, failure, cancellation,
@@ -93,15 +93,16 @@ to that point passing.
       available catalogue options.
 - [ ] **T032** Build inline safe-whole-serving editing, immediate zero removal,
       explicit removal, and editable unavailable assignments.
-- [ ] **T033** Display per-segment targets, planned totals, reportable
-      shortfalls, surpluses, and combined text statuses.
-- [ ] **T034** Build overall target/planned/shortfall/surplus status and the
-      serving-count-only product summary.
+- [ ] **T033** Display per-segment category/target/plan/delta tables with
+      yellow highlighting above 5%, red highlighting above 20%, and combined
+      text statuses.
+- [ ] **T034** Build the overall category/target/plan/delta table with the same
+      highlighting rules and the serving-count-only product summary.
 - [ ] **T035** Add clear-all confirmation that removes all assignments and
       planning-specific state.
-- [ ] **T036** Add automatic-plan confirmation, indeterminate busy state,
-      cancellation, successful replacement, undercoverage result, and
-      non-destructive failure handling.
+- [ ] **T036** Add automatic-plan confirmation, a visible indeterminate loader
+      with localized status text, cancellation, successful replacement,
+      undercoverage result, and non-destructive timeout/failure handling.
 - [ ] **T037** Disable planning calculations and editing while the race plan is
       invalid while retaining stored assignments.
 - [ ] **T038** Add component tests for inline workflows, zero removal,
@@ -114,10 +115,12 @@ to that point passing.
 - [ ] **T039** Integrate nutrition assignments with debounced saves and the
       `pagehide` flush while preserving in-memory operation on storage failure.
 - [ ] **T040** Add localized live announcements for optimizer completion or
-      failure and assignment removal caused by reconciliation.
+      failure, including the running state and 10-second timeout, and assignment
+      removal caused by reconciliation.
 - [ ] **T041** Make repeated segment controls keyboard operable with unique
       accessible names, predictable focus after mutation, visible focus, and
-      `aria-busy` during optimization.
+      `aria-busy` during optimization; ensure progress remains perceivable
+      without relying on loader animation.
 - [ ] **T042** Add responsive mobile planning layouts without page-level
       horizontal overflow or duplicate assistive-technology content.
 - [ ] **T043** Add persistence, accessibility, and responsive component tests.

@@ -9,6 +9,11 @@ test("maintains a custom nutrition option", async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByText("Mynstry Gel 40")).toBeVisible();
 
+  await page.getByLabel("Filter by brand").selectOption("Mynstry");
+  await expect(page.getByText("Mynstry Gel 40")).toBeVisible();
+  await expect(page.getByText("Water", { exact: true })).not.toBeVisible();
+  await page.getByLabel("Filter by brand").selectOption("");
+
   await page.getByRole("button", { name: /Add option/ }).click();
   const dialog = page.getByRole("dialog", { name: "Add nutrition option" });
   await expect(dialog).toBeVisible();

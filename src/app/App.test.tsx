@@ -1,7 +1,17 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { App } from "./App";
 
 describe("App", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   it("supports the manual reference calculation", async () => {
     render(<App />);
     await waitFor(() =>
@@ -76,6 +86,23 @@ describe("App", () => {
     expect(await screen.findByRole("status")).toHaveTextContent(
       "Nutrition option added.",
     );
+  });
+
+  it("filters the nutrition catalogue by brand", async () => {
+    render(<App />);
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Nutrition options" }),
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: "Nutrition options" }),
+    ).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Filter by brand"), {
+      target: { value: "Mynstry" },
+    });
+
+    expect(screen.getByText("Mynstry Gel 40")).toBeInTheDocument();
+    expect(screen.queryByText("Water")).not.toBeInTheDocument();
   });
 
   it("adds whole servings directly to a calculated segment", async () => {

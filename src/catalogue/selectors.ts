@@ -3,16 +3,25 @@ import { normalizeName } from "./validation";
 
 export const PAGE_SIZE = 20;
 
+export function selectCatalogueBrands(options: NutritionOption[]): string[] {
+  return Array.from(new Set(options.map((option) => option.brand))).sort(
+    (left, right) =>
+      left.localeCompare(right, undefined, { sensitivity: "base" }),
+  );
+}
+
 export function selectCatalogue(
   options: NutritionOption[],
   view: CatalogueViewState,
 ) {
   const search = normalizeName(view.search);
+  const brand = normalizeName(view.brand);
   const filtered = options.filter(
     (option) =>
       (!search ||
         normalizeName(option.brand).includes(search) ||
         normalizeName(option.name).includes(search)) &&
+      (!brand || normalizeName(option.brand) === brand) &&
       (view.source === "all" || option.source === view.source) &&
       (view.availability === "all" ||
         option.available === (view.availability === "available")),

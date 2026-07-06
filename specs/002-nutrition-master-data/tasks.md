@@ -54,8 +54,9 @@ to that point passing.
       state.
 - [x] **T017** Add typed German and English catalogue, validation, confirmation,
       warning, status, source, and availability messages.
-- [x] **T018** Build the catalogue page with name search, source and
-      availability filters, sortable desktop table, and 20-item pagination.
+- [x] **T018** Build the catalogue page with brand and name search, brand,
+      source and availability filters, sortable desktop table, and 20-item
+      pagination.
 - [x] **T019** Build the responsive mobile card presentation without duplicate
       assistive-technology content or horizontal page overflow.
 - [x] **T020** Add availability controls for both sources and omit standard edit

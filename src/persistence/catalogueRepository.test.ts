@@ -18,7 +18,12 @@ describe("catalogue repository", () => {
         },
       ],
     };
-    const view = { ...defaultCatalogueView, search: "one", page: 2 };
+    const view = {
+      ...defaultCatalogueView,
+      search: "one",
+      brand: "Brand",
+      page: 2,
+    };
     await saveCatalogue(state, view);
     await expect(loadCatalogue()).resolves.toEqual({
       state,

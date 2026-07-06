@@ -14,7 +14,7 @@ import type {
   SortField,
 } from "./model";
 import { parseCatalogueCsv } from "./parseCatalogueCsv";
-import { selectCatalogue } from "./selectors";
+import { selectCatalogue, selectCatalogueBrands } from "./selectors";
 import {
   parseWater,
   parseWhole,
@@ -30,6 +30,7 @@ const text = {
     add: "Add option",
     reload: "Reload defaults",
     search: "Search by brand or name",
+    brandFilter: "Filter by brand",
     source: "Source",
     availability: "Availability",
     all: "All",
@@ -82,6 +83,7 @@ const text = {
     add: "Option hinzufügen",
     reload: "Standarddaten neu laden",
     search: "Nach Marke oder Name suchen",
+    brandFilter: "Nach Marke filtern",
     source: "Quelle",
     availability: "Verfügbarkeit",
     all: "Alle",
@@ -164,6 +166,10 @@ export function NutritionCataloguePage({
   const result = useMemo(
     () => selectCatalogue(state.options, view),
     [state, view],
+  );
+  const brands = useMemo(
+    () => selectCatalogueBrands(state.options),
+    [state.options],
   );
 
   function updateView(patch: Partial<CatalogueViewState>, reset = true) {
@@ -260,6 +266,20 @@ export function NutritionCataloguePage({
               value={view.search}
               onChange={(e) => updateView({ search: e.target.value })}
             />
+          </label>
+          <label className="field">
+            <span>{m.brandFilter}</span>
+            <select
+              value={view.brand}
+              onChange={(e) => updateView({ brand: e.target.value })}
+            >
+              <option value="">{m.all}</option>
+              {brands.map((brand) => (
+                <option key={brand} value={brand}>
+                  {brand}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="field">
             <span>{m.source}</span>
