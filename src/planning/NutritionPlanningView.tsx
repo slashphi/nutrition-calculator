@@ -16,6 +16,8 @@ import {
 import { isValidServingCount, planningReducer } from "./planningReducer";
 import { requestOptimization } from "./optimizer/optimizerClient";
 
+export const AUTOMATIC_PLANNING_DEADLINE_MS = 10_000;
+
 const text = {
   en: {
     title: "Nutrition planning",
@@ -31,10 +33,10 @@ const text = {
     remove: "Remove",
     available: "Available",
     unavailable: "Unavailable",
+    category: "Category",
     target: "Target",
-    planned: "Planned",
-    shortfall: "Shortfall",
-    surplus: "Surplus",
+    plan: "Plan",
+    delta: "Delta",
     covered: "Covered",
     undercovered: "Undercovered",
     containsUnavailable: "Contains unavailable option",
@@ -67,10 +69,10 @@ const text = {
     remove: "Entfernen",
     available: "Verfügbar",
     unavailable: "Nicht verfügbar",
+    category: "Kategorie",
     target: "Ziel",
-    planned: "Geplant",
-    shortfall: "Unterdeckung",
-    surplus: "Überschuss",
+    plan: "Plan",
+    delta: "Delta",
     covered: "Gedeckt",
     undercovered: "Unterdeckt",
     containsUnavailable: "Enthält nicht verfügbare Option",
@@ -155,7 +157,7 @@ export function NutritionPlanningView({
     if (assignments.length > 0 && !window.confirm(m.confirmReplace)) return;
     const startedRevision = revision;
     const next = requestOptimization({
-      deadlineMs: 2_000,
+      deadlineMs: AUTOMATIC_PLANNING_DEADLINE_MS,
       segments: calculated.segments.map((segment) => ({
         segmentId: segment.id,
         target: segment.nutrition,
@@ -219,7 +221,12 @@ export function NutritionPlanningView({
           </button>
         </div>
       </div>
-      {message && <p role="status">{message}</p>}
+      {message && (
+        <p role="status" className={request ? "planning-progress" : undefined}>
+          {request && <span className="planning-loader" aria-hidden="true" />}
+          <span>{message}</span>
+        </p>
+      )}
       {available.length === 0 && <p>{m.noOptions}</p>}
       <div className="planning-segments">
         {calculated.segments.map((segment, index) => {
@@ -409,29 +416,58 @@ function Comparison({
   return (
     <div className="planning-comparison">
       {title && <h4>{title}</h4>}
-      <dl>
-        {rows.map(([key, label, unit, factor]) => (
-          <div key={key}>
-            <dt>{label}</dt>
-            <dd>
-              {m.target}:{" "}
-              {formatNumber(comparison.target[key] * factor, language)}
-              {" · "}
-              {m.planned}:{" "}
-              {formatNumber(comparison.planned[key] * factor, language)}
-              {" · "}
-              {m.shortfall}:{" "}
-              {formatNumber(
-                comparison.reportableShortfall[key] * factor,
-                language,
-              )}
-              {" · "}
-              {m.surplus}:{" "}
-              {formatNumber(comparison.surplus[key] * factor, language)} {unit}
-            </dd>
-          </div>
-        ))}
-      </dl>
+      <div className="catalogue-table-wrap">
+        <table className="catalogue-table nutrition-comparison-table">
+          <thead>
+            <tr>
+              <th>{m.category}</th>
+              <th>{m.target}</th>
+              <th>{m.plan}</th>
+              <th>{m.delta}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(([key, label, unit, factor]) => {
+              const target = comparison.target[key];
+              const planned = comparison.planned[key];
+              const delta = planned - target;
+              return (
+                <tr key={key}>
+                  <th scope="row">{label}</th>
+                  <td>
+                    {formatNumber(target * factor, language)} {unit}
+                  </td>
+                  <td>
+                    {formatNumber(planned * factor, language)} {unit}
+                  </td>
+                  <td className={deltaClassName(delta, target)}>
+                    {formatSignedNumber(delta * factor, language)} {unit}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
+}
+
+function deltaClassName(delta: number, target: number): string | undefined {
+  const relativeDelta =
+    target === 0
+      ? delta === 0
+        ? 0
+        : Number.POSITIVE_INFINITY
+      : Math.abs(delta / target);
+  if (relativeDelta > 0.2) return "nutrition-delta-critical";
+  if (relativeDelta > 0.05) return "nutrition-delta-warning";
+  return undefined;
+}
+
+function formatSignedNumber(value: number, language: Language): string {
+  const formatted = formatNumber(Math.abs(value), language);
+  if (value > 0) return `+${formatted}`;
+  if (value < 0) return `-${formatted}`;
+  return formatted;
 }
