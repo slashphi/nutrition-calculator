@@ -53,6 +53,7 @@ function restoreView(value: unknown): CatalogueViewState {
   ];
   return {
     search: typeof view.search === "string" ? view.search : "",
+    brand: typeof view.brand === "string" ? view.brand : "",
     source:
       view.source === "standard" || view.source === "custom"
         ? view.source

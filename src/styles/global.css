@@ -560,7 +560,7 @@ input:disabled {
 
 .catalogue-controls {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr repeat(3, 1fr);
   margin-bottom: 24px;
 }
 
@@ -593,6 +593,53 @@ input:disabled {
 
 .planning-status {
   font-weight: 700;
+}
+
+.nutrition-comparison-table th:not(:first-child),
+.nutrition-comparison-table td {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.nutrition-comparison-table .nutrition-delta-warning {
+  color: #5f4700;
+  background: #ffe08a;
+  font-weight: 800;
+}
+
+.nutrition-comparison-table .nutrition-delta-critical {
+  color: #fff;
+  background: #b42318;
+  font-weight: 800;
+}
+
+.planning-progress {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  font-weight: 700;
+}
+
+.planning-loader {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
+  border: 3px solid rgb(255 255 255 / 35%);
+  border-top-color: currentcolor;
+  border-radius: 50%;
+  animation: planning-loader-spin 0.8s linear infinite;
+}
+
+@keyframes planning-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .planning-loader {
+    animation: none;
+  }
 }
 
 .planning-assignments {

@@ -213,9 +213,10 @@ current plan unchanged. Associate each request with the race targets,
 segments, and catalogue revision; discard a response if any of them changed
 while optimization was running.
 
-Establish and document the concrete browser runtime deadline with benchmark
-tests before considering the optimizer complete. The UI shall expose progress
-as an indeterminate busy state and allow cancellation.
+Use a 10-second browser runtime deadline and verify it with representative
+catalogue and multi-segment benchmark tests. The UI shall expose progress with
+a visible indeterminate loading indicator, localized status text, and a
+programmatic busy state, and shall allow cancellation.
 
 ## 6. Manual planning UI
 
@@ -294,8 +295,10 @@ Do not rely on colour for covered, undercovered, surplus, or unavailable
 states.
 
 Focus shall remain predictable after adding/removing an inline assignment and
-after confirmations. While the optimizer is running, expose `aria-busy` and
-prevent duplicate generation requests.
+after confirmations. While the optimizer is running, show a visible
+indeterminate loader with localized status text, expose `aria-busy`, and
+prevent duplicate generation requests. Do not rely on loader animation alone
+to communicate progress.
 
 ## 10. Testing strategy
 

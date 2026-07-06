@@ -27,6 +27,7 @@ export type SortField =
 
 export interface CatalogueViewState {
   search: string;
+  brand: string;
   source: "all" | NutritionOptionSource;
   availability: "all" | "available" | "unavailable";
   sortBy: SortField;
@@ -36,6 +37,7 @@ export interface CatalogueViewState {
 
 export const defaultCatalogueView: CatalogueViewState = {
   search: "",
+  brand: "",
   source: "all",
   availability: "all",
   sortBy: "brand",

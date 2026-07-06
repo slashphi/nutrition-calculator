@@ -8,7 +8,8 @@ verification pending
 | Criterion                        | Coverage                                                                                        |
 | -------------------------------- | ----------------------------------------------------------------------------------------------- |
 | AC-1 Manual segment planning     | Planning reducer/domain tests, App component test, planning E2E                                 |
-| AC-2 Shortfall tolerances        | Boundary-focused planning domain tests                                                          |
+| AC-2A Shortfall tolerances       | Boundary-focused planning domain tests                                                          |
+| AC-2B Nutrition comparison table | Component tests for columns, signed delta, categories, and 5%/20% highlighting boundaries       |
 | AC-3 Automatic priorities        | Objective, coverage, undercoverage, diversity, 10-second timeout, loader, and performance tests |
 | AC-4 Automatic replacement       | Worker/client behavior and planning E2E                                                         |
 | AC-5 Unavailable retention       | Planning status and reconciliation tests                                                        |

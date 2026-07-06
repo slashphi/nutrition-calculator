@@ -1,5 +1,5 @@
 import { parseCatalogueCsv, standardOptionId } from "./parseCatalogueCsv";
-import { selectCatalogue } from "./selectors";
+import { selectCatalogue, selectCatalogueBrands } from "./selectors";
 import { defaultCatalogueView, type NutritionOption } from "./model";
 import {
   normalizeName,
@@ -126,10 +126,15 @@ describe("catalogue CSV", () => {
 describe("catalogue selectors", () => {
   it("combines search and filters and resets no state", () => {
     const result = selectCatalogue(
-      [option("Standard gel", "standard"), option("Custom drink")],
+      [
+        option("Standard gel", "standard"),
+        option("Custom drink"),
+        option("Other gel", "standard", "Other Brand"),
+      ],
       {
         ...defaultCatalogueView,
         search: "gel",
+        brand: "Test Brand",
         source: "standard",
         availability: "available",
       },
@@ -146,6 +151,16 @@ describe("catalogue selectors", () => {
       },
     );
     expect(result.options.map((item) => item.name)).toEqual(["Drink"]);
+  });
+
+  it("lists unique brands alphabetically", () => {
+    expect(
+      selectCatalogueBrands([
+        option("Gel", "standard", "Zulu"),
+        option("Drink", "standard", "Alpha"),
+        option("Bar", "custom", "Zulu"),
+      ]),
+    ).toEqual(["Alpha", "Zulu"]);
   });
 
   it("paginates by twenty and clamps invalid pages", () => {

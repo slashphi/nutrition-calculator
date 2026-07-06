@@ -16,6 +16,8 @@ created entirely through manual assignments.
 - **Planned intake:** The nutrient totals contributed by all assignments.
 - **Target:** The carbohydrate, water, and sodium requirement calculated by the
   Race Nutrition Calculator.
+- **Delta:** The signed difference between planned intake and target
+  (`planned - target`).
 - **Raw shortfall:** The positive difference between a target and planned
   intake before the nutrient-specific tolerance is applied.
 - **Reportable shortfall:** A raw shortfall that is at least the
@@ -86,12 +88,12 @@ The following thresholds shall suppress small raw shortfalls:
 - Carbohydrates below 5 g.
 - Sodium below 20 mg.
 
-A raw shortfall below its threshold shall be treated as zero for display,
-segment and course status, and automatic optimization. A raw shortfall equal
-to or above its threshold shall be displayed using the application's normal
-nutrient precision. Because only whole servings are permitted, an exact match
-is not guaranteed. A plan with no reportable shortfall may contain surpluses,
-which shall also be displayed.
+A raw shortfall below its threshold shall be treated as zero for segment and
+course status and automatic optimization. A raw shortfall equal to or above
+its threshold shall affect the corresponding status. Because only whole
+servings are permitted, an exact match is not guaranteed. The comparison table
+specified in section 8 shall display the signed delta instead of separate
+shortfall and surplus values.
 
 Overall planned totals shall be the sums of the segment assignments. Overall
 shortfalls shall compare those totals with the calculator's overall targets,
@@ -172,13 +174,20 @@ Options that contribute zero water, zero carbohydrates, and zero sodium shall
 not be used by automatic planning. Unavailable options shall not be used for a
 new automatic plan.
 
-Automatic generation shall terminate within a documented bounded runtime for
-the supported catalogue and segment sizes. If no candidate can contribute to a
-required nutrient, the generator shall still return its best plan and display
-the remaining reportable shortfall. If the optimization cannot complete
-within its runtime bound, it shall abort, explain the failure, and leave all
-existing assignments unchanged. It shall not install a partial or
-not-yet-proven-best result.
+Automatic generation shall terminate within 10 seconds for the supported
+catalogue and segment sizes. If no candidate can contribute to a required
+nutrient, the generator shall still return its best plan and display the
+remaining reportable shortfall. If the optimization cannot complete within
+10 seconds, it shall abort, explain the failure, and leave all existing
+assignments unchanged. It shall not install a partial or not-yet-proven-best
+result.
+
+While automatic generation is running, the application shall clearly indicate
+the ongoing calculation with a visible indeterminate loading indicator and
+localized status text. The planning region shall expose its busy state to
+assistive technology. The user shall be able to cancel the calculation, and
+duplicate generation requests shall be prevented until it completes, times
+out, or is cancelled.
 
 After generation, every assignment shall be manually editable.
 
@@ -213,12 +222,17 @@ Catalogue reconciliation shall not silently substitute a different option.
 The planning view shall show for each segment:
 
 - from and to locations;
-- carbohydrate, water, and sodium targets;
 - assigned options and serving counts;
-- planned carbohydrate, water, and sodium totals;
-- every nutrient shortfall;
-- every nutrient surplus; and
+- a table with the columns category, target, plan, and delta;
+- carbohydrate, water, and sodium as the table categories; and
 - unavailable status for affected assignments.
+
+Delta shall be calculated as plan minus target and displayed with its sign. A
+positive or negative delta whose absolute value is more than 5% of the target
+shall be highlighted in yellow. A positive or negative delta whose absolute
+value is more than 20% of the target shall instead be highlighted in red.
+Exactly 5% shall not be highlighted, and exactly 20% shall be highlighted in
+yellow. Any non-zero plan for a zero target shall be highlighted in red.
 
 Each segment shall have a text status that distinguishes:
 
@@ -231,9 +245,8 @@ shortfalls, not suppressed raw shortfalls.
 
 The complete-course summary shall show:
 
-- overall targets;
-- overall planned totals;
-- overall shortfalls and surpluses; and
+- an overall table with category, target, plan, and delta using the same
+  categories and highlighting rules; and
 - whether any segment has a shortfall.
 
 The application shall also show a complete-course product summary containing
@@ -282,14 +295,18 @@ transient status messages and shall not require acknowledgement.
 
 ## 11. Localization, accessibility, and responsive behavior
 
-All planning labels, actions, nutrient states, confirmations, warnings, and
-validation messages shall be available in German and English. Product and
-user-entered segment names shall not be translated.
+All planning labels, actions, nutrient states, table headings, confirmations,
+warnings, and validation messages shall be available in German and English.
+Product and user-entered segment names shall not be translated.
 
 The planning view shall be usable on mobile and desktop. All controls shall be
-keyboard operable with visible focus. Shortfalls, surpluses, and unavailable
-products shall not be communicated by colour alone. Status changes and
-reconciliation notices shall be announced to assistive technology.
+keyboard operable with visible focus. Delta direction and unavailable products
+shall not be communicated by colour alone; the signed delta value and text
+status shall remain available. Status changes and reconciliation notices shall
+be announced to assistive technology. The automatic-planning loading indicator
+shall not rely on animation alone: localized status text and the planning
+region's programmatic busy state shall also communicate that calculation is in
+progress.
 
 ## 12. Acceptance criteria
 
@@ -300,13 +317,27 @@ When the user assigns whole servings of options to a segment
 Then planned nutrient totals update immediately  
 And fractional or negative servings cannot be stored.
 
-### AC-2 Exact shortfall reporting
+### AC-2A Exact shortfall reporting
 
 Given a segment's planned intake is below any unrounded target  
 When the raw shortfall is at least 0.1 L water, 5 g carbohydrates, or 20 mg
 sodium respectively  
-Then it is shown and the segment is undercovered  
+Then the segment is undercovered and the delta shows the signed difference
 But a raw shortfall below the corresponding threshold is treated as zero.
+
+### AC-2B Nutrition comparison table
+
+Given nutrition targets and planned intake exist for a segment or the complete
+course
+When the nutrition comparison is displayed
+Then it is a table with the headings category, target, plan, and delta
+And it contains the categories carbohydrate, water, and sodium
+And delta is displayed as the signed result of plan minus target
+And an absolute delta of exactly 5% of target is not highlighted
+And an absolute delta greater than 5% and up to 20% of target is highlighted
+in yellow
+And an absolute delta greater than 20% of target is highlighted in red
+And any non-zero plan for a zero target is highlighted in red.
 
 ### AC-3 Automatic planning priorities
 
@@ -316,7 +347,11 @@ Then it uses only available options
 And it minimizes shortfalls and surpluses using the specified lexicographic
 water, carbohydrate, and sodium priority order  
 And no automatically planned nutrient exceeds twice its segment target  
-And variety is optimized only after nutrient shortfall and surplus.
+And variety is optimized only after nutrient shortfall and surplus
+And a visible loading indicator and localized status text remain present while
+the calculation is running
+And the calculation completes or aborts after at most 10 seconds
+And a timeout leaves all existing assignments unchanged.
 
 ### AC-4 Automatic-plan replacement
 
@@ -370,8 +405,8 @@ And no planning or catalogue data is transmitted.
 Given the language or viewport changes or the application is operated by
 keyboard  
 Then the plan remains usable and unchanged  
-And shortfalls, surpluses, and unavailable states remain perceivable without
-relying on colour.
+And delta direction, threshold severity, and unavailable states remain
+perceivable without relying on colour alone.
 
 ## 13. Out of scope
 
