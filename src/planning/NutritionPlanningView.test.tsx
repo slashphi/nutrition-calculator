@@ -100,7 +100,7 @@ describe("NutritionPlanningView", () => {
       />,
     );
 
-    const firstTable = screen.getAllByRole("table")[0];
+    const firstTable = screen.getAllByRole("table")[0] as HTMLTableElement;
     expect(firstTable).toHaveTextContent("CategoryTargetPlanDelta");
     expect(firstTable).toHaveTextContent("Carbohydrates10 g11 g+1 g");
     expect(
@@ -121,7 +121,7 @@ describe("NutritionPlanningView", () => {
       />,
     );
 
-    const firstTable = screen.getAllByRole("table")[0];
+    const firstTable = screen.getAllByRole("table")[0] as HTMLTableElement;
     expect(
       firstTable.querySelectorAll(".nutrition-delta-critical"),
     ).toHaveLength(3);
@@ -140,7 +140,10 @@ describe("NutritionPlanningView", () => {
       />,
     );
 
-    const fivePercentDelta = screen.getAllByRole("table")[0].rows[1].cells[3];
+    const fivePercentTable = screen.getAllByRole(
+      "table",
+    )[0] as HTMLTableElement;
+    const fivePercentDelta = fivePercentTable.rows[1]!.cells[3]!;
     expect(fivePercentDelta).not.toHaveClass("nutrition-delta-warning");
     expect(fivePercentDelta).not.toHaveClass("nutrition-delta-critical");
     unmount();
@@ -157,7 +160,10 @@ describe("NutritionPlanningView", () => {
       />,
     );
 
-    const twentyPercentDelta = screen.getAllByRole("table")[0].rows[1].cells[3];
+    const twentyPercentTable = screen.getAllByRole(
+      "table",
+    )[0] as HTMLTableElement;
+    const twentyPercentDelta = twentyPercentTable.rows[1]!.cells[3]!;
     expect(twentyPercentDelta).toHaveClass("nutrition-delta-warning");
     expect(twentyPercentDelta).not.toHaveClass("nutrition-delta-critical");
   });
