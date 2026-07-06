@@ -110,6 +110,27 @@ describe("NutritionPlanningView", () => {
     expect(firstTable).not.toHaveTextContent("Surplus");
   });
 
+  it("suppresses tolerated shortfalls in the displayed delta", () => {
+    render(
+      <NutritionPlanningView
+        language="en"
+        calculated={calculated}
+        assignments={[
+          { segmentId: "start--finish", optionId: "gel", servings: 0.7 },
+        ]}
+        options={options}
+        onChange={vi.fn()}
+      />,
+    );
+
+    const firstTable = screen.getAllByRole("table")[0] as HTMLTableElement;
+    expect(firstTable).toHaveTextContent("Carbohydrates10 g7 g0 g");
+    expect(firstTable).toHaveTextContent("Water0.1 L0.07 L0 L");
+    expect(firstTable).toHaveTextContent("Sodium20 mg14 mg0 mg");
+    expect(firstTable.querySelector(".nutrition-delta-warning")).toBeNull();
+    expect(firstTable.querySelector(".nutrition-delta-critical")).toBeNull();
+  });
+
   it("marks deltas over twenty percent as critical", () => {
     render(
       <NutritionPlanningView
