@@ -430,7 +430,7 @@ function Comparison({
             {rows.map(([key, label, unit, factor]) => {
               const target = comparison.target[key];
               const planned = comparison.planned[key];
-              const delta = planned - target;
+              const delta = reportableDelta(comparison, key);
               return (
                 <tr key={key}>
                   <th scope="row">{label}</th>
@@ -451,6 +451,16 @@ function Comparison({
       </div>
     </div>
   );
+}
+
+function reportableDelta(
+  comparison: ReturnType<typeof compareNutrition>,
+  key: keyof ReturnType<typeof compareNutrition>["target"],
+): number {
+  const surplus = comparison.surplus[key];
+  if (surplus > 0) return surplus;
+  const shortfall = comparison.reportableShortfall[key];
+  return shortfall > 0 ? -shortfall : 0;
 }
 
 function deltaClassName(delta: number, target: number): string | undefined {
