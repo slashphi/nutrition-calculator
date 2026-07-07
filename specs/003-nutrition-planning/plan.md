@@ -225,15 +225,19 @@ editor shall provide:
 
 - an available-option selector;
 - an add action;
+- a compact selected-products group for assigned options;
 - inline whole-serving controls for every assignment;
 - immediate removal when the count becomes zero;
 - an explicit remove action;
 - option availability state;
-- target, planned, shortfall, surplus, and text status values.
+- target, planned, signed delta, and scannable status indicators.
 
 Do not offer unavailable options in the add selector. Keep assigned unavailable
-options editable and visibly labelled. Use semantic fieldsets or labelled
-groups so repeated controls remain understandable to screen readers.
+options editable and visibly labelled. Delta severity shall be displayed as a
+contained value treatment so warnings remain visible without visually
+overpowering the comparison table. Use semantic fieldsets or labelled groups
+so repeated controls and visual status indicators remain understandable to
+screen readers.
 
 Add complete-plan actions for automatic generation and clearing. Confirm only
 when those actions would replace or remove existing assignments. Automatic

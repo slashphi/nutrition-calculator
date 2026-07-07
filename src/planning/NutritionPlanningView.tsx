@@ -33,6 +33,7 @@ const text = {
     remove: "Remove",
     available: "Available",
     unavailable: "Unavailable",
+    selectedProducts: "Selected products",
     category: "Category",
     target: "Target",
     plan: "Plan",
@@ -69,6 +70,7 @@ const text = {
     remove: "Entfernen",
     available: "Verfügbar",
     unavailable: "Nicht verfügbar",
+    selectedProducts: "Ausgewählte Produkte",
     category: "Kategorie",
     target: "Ziel",
     plan: "Plan",
@@ -310,18 +312,16 @@ function SegmentEditor({
   const [selected, setSelected] = useState("");
   return (
     <article className="planning-segment">
-      <h4>{route}</h4>
-      <p className="planning-status">
-        {statuses
-          .map((status) =>
-            status === "covered"
-              ? m.covered
-              : status === "undercovered"
-                ? m.undercovered
-                : m.containsUnavailable,
-          )
-          .join(" · ")}
-      </p>
+      <div className="planning-segment-header">
+        <h4>{route}</h4>
+        <div className="planning-status" aria-label={m.status}>
+          {statuses.map((status) => (
+            <span className={statusClassName(status)} key={status}>
+              {statusLabel(status, m)}
+            </span>
+          ))}
+        </div>
+      </div>
       <div className="inline-form">
         <label>
           <span>{m.addOption}</span>
@@ -357,6 +357,7 @@ function SegmentEditor({
         </button>
       </div>
       <div className="planning-assignments">
+        {assignments.length > 0 && <h5>{m.selectedProducts}</h5>}
         {assignments.map((assignment) => {
           const option = options.find(
             (item) => item.id === assignment.optionId,
@@ -364,10 +365,12 @@ function SegmentEditor({
           if (!option) return null;
           return (
             <div className="planning-assignment" key={option.id}>
-              <span>
-                {option.brand} – {option.name}
-                {!option.available && ` · ${m.unavailable}`}
-              </span>
+              <div className="planning-product">
+                <strong>
+                  {option.brand} – {option.name}
+                </strong>
+                {!option.available && <span>{m.unavailable}</span>}
+              </div>
               <label>
                 <span>{m.servings}</span>
                 <input
@@ -441,7 +444,9 @@ function Comparison({
                     {formatNumber(planned * factor, language)} {unit}
                   </td>
                   <td className={deltaClassName(delta, target)}>
-                    {formatSignedNumber(delta * factor, language)} {unit}
+                    <span className="delta-pill">
+                      {formatSignedNumber(delta * factor, language)} {unit}
+                    </span>
                   </td>
                 </tr>
               );
@@ -451,6 +456,23 @@ function Comparison({
       </div>
     </div>
   );
+}
+
+function statusLabel(
+  status: ReturnType<typeof segmentPlanning>[number]["statuses"][number],
+  m: (typeof text)["en"] | (typeof text)["de"],
+): string {
+  if (status === "covered") return m.covered;
+  if (status === "undercovered") return m.undercovered;
+  return m.containsUnavailable;
+}
+
+function statusClassName(
+  status: ReturnType<typeof segmentPlanning>[number]["statuses"][number],
+): string {
+  if (status === "covered") return "status-pill status-covered";
+  if (status === "undercovered") return "status-pill status-undercovered";
+  return "status-pill status-unavailable";
 }
 
 function reportableDelta(

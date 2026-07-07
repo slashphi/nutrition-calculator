@@ -94,10 +94,10 @@ to that point passing.
 - [ ] **T032** Build inline safe-whole-serving editing, immediate zero removal,
       explicit removal, and editable unavailable assignments.
 - [ ] **T033** Display per-segment category/target/plan/delta tables with
-      yellow highlighting above 5%, red highlighting above 20%, and combined
-      text statuses.
+      contained yellow highlighting above 5%, contained red highlighting above
+      20%, and combined scannable status indicators.
 - [ ] **T034** Build the overall category/target/plan/delta table with the same
-      highlighting rules and the serving-count-only product summary.
+      contained highlighting rules and the serving-count-only product summary.
 - [ ] **T035** Add clear-all confirmation that removes all assignments and
       planning-specific state.
 - [ ] **T036** Add automatic-plan confirmation, a visible indeterminate loader
@@ -117,11 +117,13 @@ to that point passing.
 - [ ] **T040** Add localized live announcements for optimizer completion or
       failure, including the running state and 10-second timeout, and assignment
       removal caused by reconciliation.
-- [ ] **T041** Make repeated segment controls keyboard operable with unique
-      accessible names, predictable focus after mutation, visible focus, and
-      `aria-busy` during optimization; ensure progress remains perceivable
-      without relying on loader animation.
-- [ ] **T042** Add responsive mobile planning layouts without page-level
+- [ ] **T041** Make repeated segment controls and status indicators keyboard
+      operable or screen-reader understandable with unique accessible names,
+      predictable focus after mutation, visible focus, and `aria-busy` during
+      optimization; ensure progress remains perceivable without relying on
+      loader animation.
+- [ ] **T042** Add responsive mobile planning layouts for segment headers,
+      selected-product rows, and comparison tables without page-level
       horizontal overflow or duplicate assistive-technology content.
 - [ ] **T043** Add persistence, accessibility, and responsive component tests.
       Covers AC-9 and AC-10.

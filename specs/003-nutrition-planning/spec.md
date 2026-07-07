@@ -222,7 +222,7 @@ Catalogue reconciliation shall not silently substitute a different option.
 The planning view shall show for each segment:
 
 - from and to locations;
-- assigned options and serving counts;
+- assigned options and serving counts in a compact selected-products group;
 - a table with the columns category, target, plan, and delta;
 - carbohydrate, water, and sodium as the table categories; and
 - unavailable status for affected assignments.
@@ -231,17 +231,20 @@ Delta shall be calculated as plan minus target and displayed with its sign. A
 positive or negative delta whose absolute value is more than 5% of the target
 shall be highlighted in yellow. A positive or negative delta whose absolute
 value is more than 20% of the target shall instead be highlighted in red.
-Exactly 5% shall not be highlighted, and exactly 20% shall be highlighted in
-yellow. Any non-zero plan for a zero target shall be highlighted in red.
+Highlighting shall be visually contained to the delta value rather than
+dominating the complete table row or cell. Exactly 5% shall not be
+highlighted, and exactly 20% shall be highlighted in yellow. Any non-zero plan
+for a zero target shall be highlighted in red.
 
-Each segment shall have a text status that distinguishes:
+Each segment shall have a clearly scannable status display that distinguishes:
 
 - covered;
 - undercovered; and
 - contains an unavailable assigned option.
 
-More than one status may apply. Status shall be based on reportable
-shortfalls, not suppressed raw shortfalls.
+More than one status may apply. Status shall be exposed as text for assistive
+technology and presented visually as compact status indicators. Status shall
+be based on reportable shortfalls, not suppressed raw shortfalls.
 
 The complete-course summary shall show:
 

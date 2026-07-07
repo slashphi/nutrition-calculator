@@ -302,6 +302,13 @@ input:disabled {
   margin-top: 14px;
 }
 
+.inline-form label {
+  display: grid;
+  flex: 1 1 22rem;
+  gap: 7px;
+  font-weight: 700;
+}
+
 .upload-box {
   margin-top: 24px;
   padding: 26px;
@@ -576,14 +583,16 @@ input:disabled {
 
 .planning-segments {
   display: grid;
-  gap: 1rem;
+  gap: 1.15rem;
 }
 
 .planning-segment {
-  padding: 1rem;
+  padding: clamp(1rem, 3vw, 1.35rem);
   color: var(--ink);
   background: var(--paper);
-  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 20px rgba(29, 39, 32, 0.05);
 }
 
 .planning-segment h4,
@@ -591,8 +600,57 @@ input:disabled {
   margin-top: 0;
 }
 
+.planning-segment-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.planning-segment-header h4 {
+  margin-bottom: 0;
+}
+
 .planning-status {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  margin: 0;
   font-weight: 700;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.8rem;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 850;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.status-covered {
+  color: #21420f;
+  background: #e2f2c1;
+  border-color: #bbd884;
+}
+
+.status-undercovered {
+  color: #6c1f17;
+  background: #fae8e5;
+  border-color: #e8aaa3;
+}
+
+.status-unavailable {
+  color: #5f4700;
+  background: #fff2c7;
+  border-color: #e6c96e;
 }
 
 .nutrition-comparison-table th:not(:first-child),
@@ -601,16 +659,29 @@ input:disabled {
   white-space: nowrap;
 }
 
-.nutrition-comparison-table .nutrition-delta-warning {
-  color: #5f4700;
-  background: #ffe08a;
-  font-weight: 800;
+.nutrition-comparison-table td:last-child {
+  min-width: 8rem;
 }
 
-.nutrition-comparison-table .nutrition-delta-critical {
-  color: #fff;
-  background: #b42318;
+.delta-pill {
+  display: inline-flex;
+  min-width: 5.25rem;
+  justify-content: flex-end;
+  padding: 0.32rem 0.55rem;
+  border-radius: 999px;
   font-weight: 800;
+  line-height: 1.15;
+}
+
+.nutrition-comparison-table .nutrition-delta-warning .delta-pill {
+  color: #5f4700;
+  background: #ffe08a;
+}
+
+.nutrition-comparison-table .nutrition-delta-critical .delta-pill {
+  color: #8d2118;
+  background: #fae2de;
+  box-shadow: inset 0 0 0 1px #df9a91;
 }
 
 .planning-progress {
@@ -644,24 +715,57 @@ input:disabled {
 
 .planning-assignments {
   display: grid;
-  gap: 0.5rem;
-  margin-block: 0.75rem;
+  gap: 0.65rem;
+  margin-block: 1rem;
+}
+
+.planning-assignments h5 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .planning-assignment {
   display: grid;
-  grid-template-columns: minmax(8rem, 1fr) minmax(7rem, auto) auto;
+  grid-template-columns: minmax(12rem, 1fr) minmax(7rem, auto) auto;
   gap: 0.75rem;
-  align-items: end;
+  align-items: center;
+  min-height: 4.35rem;
+  padding: 0.75rem;
+  background: var(--sand);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.planning-product {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.planning-product strong {
+  overflow-wrap: anywhere;
+}
+
+.planning-product span {
+  color: var(--danger);
+  font-size: 0.82rem;
+  font-weight: 750;
 }
 
 .planning-assignment label {
   display: grid;
   gap: 0.25rem;
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
 .planning-assignment input {
   max-width: 7rem;
+  min-height: 2.75rem;
 }
 
 .planning-comparison dl {
@@ -684,9 +788,21 @@ input:disabled {
 }
 
 @media (max-width: 42rem) {
+  .planning-segment-header {
+    display: grid;
+  }
+
+  .planning-status {
+    justify-content: flex-start;
+  }
+
   .planning-assignment,
   .planning-comparison dl > div {
     grid-template-columns: 1fr;
+  }
+
+  .planning-assignment .text-button {
+    justify-self: start;
   }
 }
 
